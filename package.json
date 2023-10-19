@@ -1,0 +1,26 @@
+{
+  "name": "yaci",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "clear": "nuxt cleanup",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "lint": "eslint --ext .js,.vue,.ts,.tsx --ignore-path .gitignore . chats"
+  },
+  "devDependencies": {
+    "@iconify-json/ph": "^1.1.6",
+    "@nuxtjs/eslint-config-typescript": "^12.1.0",
+    "@nuxtjs/google-fonts": "^3.0.2",
+    "eslint": "^8.51.0",
+    "nuxt": "^3.8.0",
+    "vue": "^3.3.4",
+    "vue-router": "^4.2.5"
+  },
+  "dependencies": {
+    "@nuxt/ui": "^2.9.0"
+  }
+}
