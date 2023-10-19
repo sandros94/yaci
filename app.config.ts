@@ -11,6 +11,14 @@ export default defineAppConfig({
       variant: {
         ghost: 'hover:bg-transparent dark:hover:bg-transparent'
       }
+    },
+    card: {
+      background: 'bg-transparent dark:bg-transparent',
+      body: {
+        base: 'flex flex-col h-full'
+      },
+      ring: '',
+      shadow: ''
     }
   }
 })

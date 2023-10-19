@@ -45,6 +45,14 @@ export default defineNuxtConfig({
     icons: ['ph']
   },
 
+  runtimeConfig: {
+    public: {
+      ollama: {
+        baseUrl: 'http://localhost:11434'
+      }
+    }
+  },
+
   $production: {
     nitro: {
       compressPublicAssets: true
