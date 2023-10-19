@@ -1,3 +1,9 @@
 {
-  "extends": ["@nuxtjs/eslint-config-typescript"]
+  "root": true,
+  "extends": ["@nuxtjs/eslint-config-typescript"],
+  "plugins": ["tailwindcss"],
+  "rules": {
+    "vue/multi-word-component-names": 0,
+    "vue/no-multiple-template-root": 0
+  }
 }

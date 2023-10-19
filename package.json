@@ -2,6 +2,9 @@
   "name": "yaci",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": "^18.0.0 || ^20.0.0"
+  },
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
@@ -13,9 +16,12 @@
   },
   "devDependencies": {
     "@iconify-json/ph": "^1.1.6",
+    "@nuxt/devtools": "latest",
     "@nuxtjs/eslint-config-typescript": "^12.1.0",
+    "@nuxtjs/eslint-module": "^4.1.0",
     "@nuxtjs/google-fonts": "^3.0.2",
     "eslint": "^8.51.0",
+    "eslint-plugin-tailwindcss": "^3.13.0",
     "nuxt": "^3.8.0",
     "vue": "^3.3.4",
     "vue-router": "^4.2.5"

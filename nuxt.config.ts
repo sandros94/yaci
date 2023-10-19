@@ -2,8 +2,9 @@ import colors from 'tailwindcss/colors'
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   modules: [
-    '@nuxt/ui',
-    '@nuxtjs/google-fonts'
+    '@nuxtjs/eslint-module',
+    '@nuxtjs/google-fonts',
+    '@nuxt/ui'
   ],
 
   devtools: { enabled: true },
