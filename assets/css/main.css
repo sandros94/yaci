@@ -1,9 +1,10 @@
 body {
+  width: 100vw;
   background:
-    radial-gradient(circle at 50% 10%, #f1f1f1, #fafafa);
+    radial-gradient(circle at 50% 10%, #f1f1f1, #fafafa) no-repeat;
 }
 
 .dark body {
   background:
-    radial-gradient(circle at 50% 10%, #1d1d1d, #0f0f0f);
+    radial-gradient(circle at 50% 10%, #1d1d1d, #0f0f0f) no-repeat;
 }
