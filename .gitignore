@@ -34,4 +34,4 @@ logs
 .idea
 
 # Project specific
-chats
+storage/chats

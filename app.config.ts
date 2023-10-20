@@ -15,7 +15,7 @@ export default defineAppConfig({
     card: {
       background: 'bg-transparent dark:bg-transparent',
       body: {
-        base: 'flex flex-col h-full'
+        base: 'h-full flex-grow'
       },
       ring: '',
       shadow: ''

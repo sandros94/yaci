@@ -53,6 +53,15 @@ export default defineNuxtConfig({
     }
   },
 
+  nitro: {
+    storage: {
+      chats: {
+        driver: 'fs',
+        base: '~/storage/chat'
+      }
+    }
+  },
+
   $production: {
     nitro: {
       compressPublicAssets: true
