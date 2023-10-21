@@ -26,9 +26,18 @@ const isSidebarOpen = ref(false)
 
 onMounted(() => {
   const mediaQuery = window.matchMedia('(min-width: 1024px)')
-  isSidebarOpen.value = mediaQuery.matches
+  const storedSidebarState = localStorage.getItem('isSidebarOpen')
+  if (storedSidebarState !== null) {
+    isSidebarOpen.value = JSON.parse(storedSidebarState)
+  } else {
+    isSidebarOpen.value = mediaQuery.matches
+  }
   mediaQuery.addEventListener('change', (event) => {
     isSidebarOpen.value = event.matches
+  })
+  // Store the state of isSidebarOpen in local storage
+  window.addEventListener('beforeunload', () => {
+    localStorage.setItem('isSidebarOpen', JSON.stringify(isSidebarOpen.value))
   })
 })
 </script>
