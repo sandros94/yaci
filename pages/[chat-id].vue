@@ -4,17 +4,17 @@
       <template #header>
         <div class="text-center">
           <h3 class="my-0">
-            Welcome to YACI - {{ chatId }}
+            Welcome to YACI - {{ chatid }}
           </h3>
         </div>
       </template>
       <div>
-        <UiChat :messages="messages" />
+        <UiChat v-if="chat && chat.messages" :messages="chat.messages" @delete-last="chat.messages.splice(-2)" />
       </div>
       <template #footer>
         <div class="flex">
-          <UTextarea v-model="messageText.prompt" class="w-full" @keyup.enter="submitMessage" />
-          <UButton class="px-6" icon="i-ph-arrow-right" @click="submitMessage" />
+          <UTextarea v-model="messageText.prompt" class="w-full" :disabled="isResponding" @keyup.enter="submitMessage" />
+          <UButton class="px-6" icon="i-ph-arrow-right" :disabled="isResponding" @click="submitMessage" />
         </div>
       </template>
     </UCard>
@@ -26,26 +26,31 @@ import { joinURL } from 'ufo'
 import type {
   OllamaResponseSingle,
   UserMessage,
-  Message
+  Chat
 } from '~/types'
 
 const ollama: any = useRuntimeConfig().public.ollama
 
-const route = useRoute()
-const chatId = route.params.chatid
+const { params: { chatid } } = useRoute()
 
 const messageText = ref<UserMessage>({
   context: [],
   prompt: ''
 })
-const messages = ref<Message[]>([])
+const chat = ref<Chat>({
+  id: chatid[0],
+  messages: []
+})
+const isResponding = ref(false)
 
 async function submitMessage () {
   if (!messageText.value.prompt) { return }
+  isResponding.value = true
 
   const prompt = messageText.value.prompt
+  messageText.value.prompt = ''
 
-  messages.value.push({
+  chat.value.messages?.push({
     sender: 'user',
     message: {
       context: messageText.value.context,
@@ -53,8 +58,6 @@ async function submitMessage () {
       created_at: new Date()
     }
   })
-
-  messageText.value.prompt = ''
 
   const responseBody = await $fetch<OllamaResponseSingle>(joinURL(ollama.baseUrl, '/api/generate'), {
     method: 'post',
@@ -66,13 +69,27 @@ async function submitMessage () {
     }
   })
 
-  messageText.value.context = responseBody.context
-
-  messages.value.push({
-    sender: 'llm',
+  chat.value.messages!.push({
+    sender: 'bot',
     message: responseBody
   })
+  isResponding.value = false
 }
+
+// use a computed property to map all contexts from chat.value
+const allContexts = computed(() => {
+  return chat.value.messages!.flatMap((message) => {
+    if (message.sender === 'bot') {
+      return message.message.context
+    }
+    return []
+  })
+})
+
+// use a watcher to update messageText.value.context when allContexts changes
+watch(allContexts, (contexts) => {
+  messageText.value.context = contexts
+})
 </script>
 
 <style coped>
