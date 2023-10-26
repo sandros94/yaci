@@ -62,6 +62,7 @@
 const route = useRoute()
 const isSidebarOpen = ref(false)
 const chatList = useChatList()
+chatList.value = await $fetch<{ id: string, label: string, to: string }[]>('/api/chats')
 const isModal = ref({
   open: false,
   title: '',

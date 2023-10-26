@@ -8,13 +8,12 @@ export default defineEventHandler(async (_event) => {
   // read all chats using ids and get each title
   async function getTitle (id: string) {
     const chat = await storage.getItem<Chat>(id)
-    return chat?.title
+    return {
+      label: chat?.title,
+      to: `/chats/${id}`,
+      id: chat?.id
+    }
   }
 
-  const titles = await Promise.all(ids.map(getTitle))
-
-  return {
-    ids,
-    titles
-  }
+  return await Promise.all(ids.map(getTitle))
 })
