@@ -1,7 +1,7 @@
 <template>
   <div>
     <div v-for="(item, index) in messages" :key="JSON.stringify(item)" class="flex">
-      <div v-if="item.sender === 'bot'" class="w-full group pt-5">
+      <div v-if="item.sender === 'ai'" class="w-full group pt-5">
         <div v-if="!isUserMessage(item.message)">
           <span class="justify-start">
             <UIcon name="i-ph-robot" class="align-text-bottom text-2xl" />

@@ -12,7 +12,7 @@
         </div>
       </template>
       <div>
-        <UiChat v-if="chat && chat.messages" :messages="chat.messages" @delete-last="chat.messages.splice(-2)" />
+        <UiChat v-if="chat && chat.messages" :messages="chat.messages" @delete-last="deleteLast()" />
       </div>
       <template #footer>
         <div class="flex">
@@ -37,12 +37,20 @@ const { public: { ollama: { baseURL: ollamaURL } } } = useRuntimeConfig()
 const { params: { chatid }, query: { title: pageTitle } } = useRoute()
 
 const messageText = ref<UserMessage>({
-  context: [],
   prompt: ''
 })
-const chat = ref<Chat>({
+
+const { data: chatHistory } = await useFetch<Chat>('/api/chats/readSingle', {
+  method: 'POST',
+  body: {
+    id: chatid
+  }
+})
+
+const chat = ref<Chat>(chatHistory.value ?? {
   id: chatid as string,
   title: pageTitle as string,
+  context: [],
   messages: []
 })
 const isResponding = ref(false)
@@ -57,7 +65,6 @@ async function submitMessage () {
   chat.value.messages?.push({
     sender: 'user',
     message: {
-      context: messageText.value.context,
       prompt,
       created_at: new Date()
     }
@@ -68,35 +75,46 @@ async function submitMessage () {
     method: 'post',
     body: {
       model: 'mistral',
-      context: messageText.value.context,
+      context: chat.value.context,
       prompt,
       stream: false
     }
   })
 
-  // TODO: post to api endpoint to save message to db, if successful, push to chat.value.messages, else reinsert the message into messageText.value.prompt
-
   chat.value.messages!.push({
-    sender: 'bot',
+    sender: 'ai',
     message: responseBody
   })
+  chat.value.context!.push(...responseBody.context)
+
+  // TODO: post to api endpoint to save message to db
+  await useFetch('/api/chats', {
+    method: 'post',
+    body: chat.value
+  })
+
   isResponding.value = false
 }
 
-// use a computed property to map all contexts from chat.value
-const allContexts = computed(() => {
-  return chat.value.messages!.flatMap((message) => {
-    if (message.sender === 'bot') {
+async function deleteLast () {
+  function isOllamaResponseSingle (message: UserMessage | OllamaResponseSingle): message is OllamaResponseSingle {
+    return (message as OllamaResponseSingle).model !== undefined
+  }
+
+  chat.value.messages!.splice(-2)
+
+  chat.value.context = chat.value.messages!.flatMap((message) => {
+    if (message.sender === 'ai' && isOllamaResponseSingle(message.message)) {
       return message.message.context
     }
     return []
   })
-})
 
-// use a watcher to update messageText.value.context when allContexts changes
-watch(allContexts, (contexts) => {
-  messageText.value.context = contexts
-})
+  await useFetch('/api/chats', {
+    method: 'post',
+    body: chat.value
+  })
+}
 </script>
 
 <style coped>

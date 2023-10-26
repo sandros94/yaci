@@ -92,17 +92,24 @@ watch(isModal, (newValue) => {
   }
 })
 
-function deleteChat (chatId: string) {
+async function deleteChat (chatId: string) {
   // TODO: do a fetch to delete the chat, then check response
+  const { data: res } = await useFetch('/api/chats/deleteSingle', {
+    method: 'POST',
+    body: {
+      id: chatId
+    }
+  })
 
   // if response is ok, then delete the chat from chatList
-  const chatIndex = chatList.value.findIndex((chat) => { return chat.id === chatId })
-  chatList.value.splice(chatIndex, 1)
-  isModal.value.open = false
-
-  // check if route.params.chatid ends with chatId, if it does then navigate to home
-  if (route.params.chatid === chatId) {
-    navigateTo('/')
+  if (res.value === true) {
+    const chatIndex = chatList.value.findIndex((chat) => { return chat.id === chatId })
+    chatList.value.splice(chatIndex, 1)
+    isModal.value.open = false
+    // check if route.params.chatid equals with chatId, if it does then navigate to home
+    if (route.params.chatid === chatId) {
+      navigateTo('/')
+    }
   }
 }
 </script>

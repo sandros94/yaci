@@ -13,14 +13,13 @@ export interface OllamaResponseSingle {
 }
 
 export interface UserMessage {
-  context: number[],
-  created_at?: Date,
   prompt: string,
+  created_at?: Date,
 }
 
 export interface Message {
-  sender: string,
-  message: OllamaResponseSingle | UserMessage,
+  sender: 'user' | 'ai',
+  message: UserMessage | OllamaResponseSingle,
 }
 
 export interface Chat {
@@ -28,5 +27,6 @@ export interface Chat {
   title: string,
   system_prompt?: string,
   temperature?: number,
+  context?: number[],
   messages?: Message[],
 }
