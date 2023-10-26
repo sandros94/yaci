@@ -20,7 +20,7 @@
             }"
           >
             <template #badge="{ link, isActive }">
-              <UButton icon="i-ph-x" variant="ghost" :color="isActive ? 'primary' : 'black'" :padded="false" @click="() => { isModal.title = link.label; isModal.id = link.id; isModal.open = true }" />
+              <UButton icon="i-ph-trash" variant="ghost" :color="isActive ? 'primary' : 'black'" :padded="false" @click="() => { isModal.title = link.label; isModal.id = link.id; isModal.open = true }" />
             </template>
           </UVerticalNavigation>
           <UModal v-model="isModal.open">
