@@ -6,5 +6,5 @@ export default defineEventHandler(async (event) => {
   if (!body.id) {
     throw new Error('Missing chat ID')
   }
-  return await useStorage('chats').getItem<Chat>(`${body.id}.json`)
+  return await useStorage('chats').getItem<Chat>(body.id)
 })
