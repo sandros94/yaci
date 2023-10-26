@@ -85,7 +85,8 @@ async function submitMessage () {
     sender: 'ai',
     message: responseBody
   })
-  chat.value.context!.push(...responseBody.context)
+
+  chat.value.context = responseBody.context
 
   // TODO: post to api endpoint to save message to db
   await useFetch('/api/chats', {
@@ -103,12 +104,14 @@ async function deleteLast () {
 
   chat.value.messages!.splice(-2)
 
-  chat.value.context = chat.value.messages!.flatMap((message) => {
-    if (message.sender === 'ai' && isOllamaResponseSingle(message.message)) {
-      return message.message.context
+  if (chat.value.messages && chat.value.messages.length > 1) {
+    const lastMessage = chat.value.messages?.at(-1)
+    if (lastMessage!.sender === 'ai' && isOllamaResponseSingle(lastMessage!.message)) {
+      chat.value.context = lastMessage!.message.context
     }
-    return []
-  })
+  } else {
+    chat.value.messages = []
+  }
 
   await useFetch('/api/chats', {
     method: 'post',
