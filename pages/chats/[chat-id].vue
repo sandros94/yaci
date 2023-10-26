@@ -3,9 +3,31 @@
     <UCard class="min-h-full h-fit flex flex-col">
       <template #header>
         <div class="w-full px-4 text-center">
-          <h3 v-if="pageTitle || chat.title" class="my-0 truncate">
-            {{ pageTitle || chat.title }}
-          </h3>
+          <span v-if="pageTitle || chat.title" class="inline-flex gap-2">
+            <h3 class="my-0 truncate">
+              {{ pageTitle || chat.title }}
+            </h3>
+            <UButton icon="i-ph-pencil" variant="ghost" @click="isEdit.open = true" />
+            <UModal v-model="isEdit.open">
+              <UCard class="prose dark:prose-invert">
+                <template #header>
+                  <h3 class="my-0 ml-4">
+                    Change Title
+                  </h3>
+                </template>
+                <h4 class="mt-0">
+                  Set new title:
+                </h4>
+                <UInput v-model="isEdit.title" />
+                <template #footer>
+                  <span class="w-full inline-flex justify-end gap-6 mb-2">
+                    <UButton label="Cancel" variant="outline" color="black" @click="isEdit.open = false" />
+                    <UButton label="Edit Title" variant="outline" :ui="{variant:{solid:'dark:text-gray-100'}}" @click="editTitle()" />
+                  </span>
+                </template>
+              </UCard>
+            </UModal>
+          </span>
           <h3 v-else class="my-0">
             Welcome to YACI
           </h3>
@@ -54,6 +76,10 @@ const chat = ref<Chat>(chatHistory.value ?? {
   messages: []
 })
 const isResponding = ref(false)
+const isEdit = ref({
+  open: false,
+  title: chat.value.title ?? ''
+})
 
 async function submitMessage () {
   if (!messageText.value.prompt) { return }
@@ -117,6 +143,17 @@ async function deleteLast () {
     method: 'post',
     body: chat.value
   })
+}
+
+async function editTitle () {
+  chat.value.title = isEdit.value.title
+
+  await useFetch('/api/chats', {
+    method: 'post',
+    body: chat.value
+  })
+
+  isEdit.value.open = false
 }
 </script>
 
