@@ -3,8 +3,8 @@
     <UCard class="min-h-full h-fit flex flex-col">
       <template #header>
         <div class="w-full px-4 text-center">
-          <h3 v-if="pageTitle" class="my-0 truncate">
-            {{ pageTitle }}
+          <h3 v-if="pageTitle || chat.title" class="my-0 truncate">
+            {{ pageTitle || chat.title }}
           </h3>
           <h3 v-else class="my-0">
             Welcome to YACI
