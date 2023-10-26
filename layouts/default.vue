@@ -2,9 +2,48 @@
   <div class="w-full h-full flex overflow-hidden">
     <div class="h-full relative transition-all transition-gpu duration-300" :class="{'ml-0': isSidebarOpen, '-ml-72': !isSidebarOpen}">
       <div
-        class="h-full w-72 px-2 py-1 bg-neutral-50 bg-opacity-20 dark:bg-neutral-950 dark:bg-opacity-20 transform"
+        class="h-full w-72 px-2 py-1 bg-neutral-50 bg-opacity-20 dark:bg-neutral-950 dark:bg-opacity-20 transform overflow-hidden"
       >
-        <h3>Side Bar</h3>
+        <span class="w-full my-2 inline-flex justify-evenly prose dark:prose-invert">
+          <NuxtLink to="/">
+            <h3>Home</h3>
+          </NuxtLink>
+          <h3>Chats</h3>
+        </span>
+        <div class="w-3/4 mx-auto overflow-y-auto">
+          <UVerticalNavigation
+            class="w-full"
+            :links="chatList"
+            :ui="{
+              label: 'w-full truncate relative inline-flex justify-between',
+              badge: 'px-0 -me-0'
+            }"
+          >
+            <template #badge="{ link, isActive }">
+              <UButton icon="i-ph-x" variant="ghost" :color="isActive ? 'primary' : 'black'" :padded="false" @click="() => { isModal.title = link.label; isModal.id = link.id; isModal.open = true }" />
+            </template>
+          </UVerticalNavigation>
+          <UModal v-model="isModal.open">
+            <UCard class="prose dark:prose-invert">
+              <template #header>
+                <h3 class="my-0 ml-4">
+                  ⚠️ Warning!
+                </h3>
+              </template>
+              <h4 class="mt-0">
+                Deleting a chat is permanent.
+              </h4>
+              <p>You are about to delete the following chat:</p>
+              {{ isModal.title }}
+              <template #footer>
+                <span class="w-full inline-flex justify-end gap-6 mb-2">
+                  <UButton label="Cancel" variant="outline" @click="isModal.open = false" />
+                  <UButton label="Delete Chat" variant="outline" color="warning" :ui="{variant:{solid:'dark:text-gray-100'}}" @click="deleteChat(isModal.id)" />
+                </span>
+              </template>
+            </UCard>
+          </UModal>
+        </div>
       </div>
       <UButton
         class="absolute top-2 -right-12"
@@ -20,9 +59,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-
+const route = useRoute()
 const isSidebarOpen = ref(false)
+const chatList = useChatList()
+const isModal = ref({
+  open: false,
+  title: '',
+  id: ''
+})
 
 onMounted(() => {
   const mediaQuery = window.matchMedia('(min-width: 1024px)')
@@ -40,6 +84,27 @@ onMounted(() => {
     localStorage.setItem('isSidebarOpen', JSON.stringify(isSidebarOpen.value))
   })
 })
+
+watch(isModal, (newValue) => {
+  if (newValue.open === false && newValue.title !== '' && newValue.id !== '') {
+    isModal.value.id = ''
+    isModal.value.title = ''
+  }
+})
+
+function deleteChat (chatId: string) {
+  // TODO: do a fetch to delete the chat, then check response
+
+  // if response is ok, then delete the chat from chatList
+  const chatIndex = chatList.value.findIndex((chat) => { return chat.id === chatId })
+  chatList.value.splice(chatIndex, 1)
+  isModal.value.open = false
+
+  // check if route.params.chatid ends with chatId, if it does then navigate to home
+  if (route.params.chatid === chatId) {
+    navigateTo('/')
+  }
+}
 </script>
 
 <style scoped>

@@ -2,9 +2,12 @@
   <div class="prose dark:prose-invert w-full h-full mx-auto overflow-y-auto">
     <UCard class="min-h-full h-fit flex flex-col">
       <template #header>
-        <div class="text-center">
-          <h3 class="my-0">
-            Welcome to YACI - {{ chatid }}
+        <div class="w-full px-4 text-center">
+          <h3 v-if="pageTitle" class="my-0 truncate">
+            {{ pageTitle }}
+          </h3>
+          <h3 v-else class="my-0">
+            Welcome to YACI
           </h3>
         </div>
       </template>
@@ -29,16 +32,17 @@ import type {
   Chat
 } from '~/types'
 
-const ollama: any = useRuntimeConfig().public.ollama
+const { public: { ollama: { baseURL: ollamaURL } } } = useRuntimeConfig()
 
-const { params: { chatid } } = useRoute()
+const { params: { chatid }, query: { title: pageTitle } } = useRoute()
 
 const messageText = ref<UserMessage>({
   context: [],
   prompt: ''
 })
 const chat = ref<Chat>({
-  id: chatid[0],
+  id: chatid as string,
+  title: pageTitle as string,
   messages: []
 })
 const isResponding = ref(false)
@@ -59,7 +63,8 @@ async function submitMessage () {
     }
   })
 
-  const responseBody = await $fetch<OllamaResponseSingle>(joinURL(ollama.baseUrl, '/api/generate'), {
+  // TODO: enable streaming mode
+  const responseBody = await $fetch<OllamaResponseSingle>(joinURL(ollamaURL, '/api/generate'), {
     method: 'post',
     body: {
       model: 'mistral',
@@ -68,6 +73,8 @@ async function submitMessage () {
       stream: false
     }
   })
+
+  // TODO: post to api endpoint to save message to db, if successful, push to chat.value.messages, else reinsert the message into messageText.value.prompt
 
   chat.value.messages!.push({
     sender: 'bot',

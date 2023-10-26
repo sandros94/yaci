@@ -48,7 +48,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       ollama: {
-        baseUrl: 'http://localhost:11434'
+        baseURL: 'http://localhost:11434'
       }
     }
   },
@@ -57,7 +57,7 @@ export default defineNuxtConfig({
     storage: {
       chats: {
         driver: 'fs',
-        base: '~/storage/chat'
+        base: 'storage/chats'
       }
     }
   },

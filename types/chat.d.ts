@@ -22,3 +22,11 @@ export interface Message {
   sender: string,
   message: OllamaResponseSingle | UserMessage,
 }
+
+export interface Chat {
+  id: string,
+  title: string,
+  system_prompt?: string,
+  temperature?: number,
+  messages?: Message[],
+}
