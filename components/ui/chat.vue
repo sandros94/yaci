@@ -23,7 +23,7 @@
               {{ item.message.created_at }}
             </span>
           </span>
-          <p>{{ item.message.prompt }}</p>
+          <VueMarkdown :source="item.message.prompt" />
         </div>
       </div>
     </div>
