@@ -3,9 +3,9 @@
     <UCard class="min-h-full h-fit flex flex-col">
       <template #header>
         <div class="w-full px-4 text-center">
-          <span v-if="pageTitle || chat.title" class="inline-flex gap-2">
+          <span v-if="chat.title || pageTitle" class="inline-flex gap-2">
             <h3 class="my-0 truncate">
-              {{ pageTitle || chat.title }}
+              {{ chat.title || pageTitle }}
             </h3>
             <UButton icon="i-ph-pencil" variant="ghost" @click="isEdit.open = true" />
             <UModal v-model="isEdit.open">
