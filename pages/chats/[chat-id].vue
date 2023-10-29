@@ -157,7 +157,8 @@ async function deleteLast () {
       chat.value.messages.splice(-2)
       chat.value.context = lastMessage.message.context
     } else {
-    chat.value.messages = []
+      throw new Error('Couln\'t delete last message')
+    }
   }
 
   await useFetch('/api/chats', {
