@@ -54,9 +54,7 @@
         @click="isSidebarOpen = !isSidebarOpen"
       />
     </div>
-    <div class="w-full h-full overflow-y-auto">
-      <slot />
-    </div>
+    <slot />
   </div>
 </template>
 

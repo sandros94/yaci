@@ -1,49 +1,239 @@
 <template>
-  <div>
-    <div v-for="(item, index) in messages" :key="JSON.stringify(item)" class="flex">
-      <div v-if="item.sender === 'ai'" class="w-full group pt-5">
-        <div v-if="!isUserMessage(item.message)">
-          <span class="justify-start">
-            <UIcon name="i-ph-robot" class="align-text-bottom text-2xl" />
-            {{ item.message.model }}
-            <span class="hidden group-hover:inline-block pl-4 text-[0.66rem]">
-              {{ item.message.created_at }}
-            </span>
+  <div class="w-full h-fit overflow-y-auto">
+    <UCard class="prose dark:prose-invert mx-auto">
+      <template #header>
+        <div class="w-full px-4 text-center">
+          <span v-if="chat.title" class="inline-flex gap-2">
+            <h3 class="my-0 truncate">
+              {{ chat.title }}
+            </h3>
+            <UButton icon="i-ph-pencil" variant="ghost" @click="isEdit.open = true" />
+            <UModal v-model="isEdit.open">
+              <UCard class="prose dark:prose-invert">
+                <template #header>
+                  <h3 class="my-0 ml-4">
+                    Change Title
+                  </h3>
+                </template>
+                <h4 class="mt-0">
+                  Set new title:
+                </h4>
+                <UInput v-model="isEdit.title" />
+                <template #footer>
+                  <span class="w-full inline-flex justify-end gap-6 mb-2">
+                    <UButton label="Cancel" variant="outline" color="black" @click="isEdit.open = false" />
+                    <UButton label="Edit Title" variant="outline" :ui="{variant:{solid:'dark:text-gray-100'}}" @click="editTitle()" />
+                  </span>
+                </template>
+              </UCard>
+            </UModal>
           </span>
-          <VueMarkdown :source="item.message.response" />
+          <h3 v-else class="my-0">
+            Welcome to YACI
+          </h3>
+        </div>
+      </template>
+      <div v-if="chat.messages">
+        <div v-for="(item, index) in chat.messages" :key="JSON.stringify(item)" class="flex">
+          <div v-if="item.sender === 'ai'" class="w-full group pt-5">
+            <span class="justify-start">
+              <UIcon name="i-ph-robot" class="align-text-bottom text-2xl" />
+              {{ item.message.model }}
+              <span class="hidden group-hover:inline-block pl-4 text-[0.66rem]">
+                {{ item.message.created_at }}
+              </span>
+            </span>
+            <VueMarkdown :source="item.message.response" />
+          </div>
+          <div v-else class="w-full relative group pt-5">
+            <UButton v-if="index === chat.messages.length - 2 || index === chat.messages.length - 1" icon="i-ph-x" class="absolute right-0 opacity-20 hover:opacity-100" variant="outline" @click="deleteLast()" />
+            <span class="justify-end">
+              <UIcon name="i-ph-user" class="align-text-bottom text-2xl" />
+              {{ item.sender }}
+              <span class="hidden group-hover:inline-block pl-4 text-[0.66rem]">
+                {{ item.message.created_at }}
+              </span>
+            </span>
+            <VueMarkdown :source="item.message.prompt" />
+          </div>
         </div>
       </div>
-      <div v-else class="w-full relative group pt-5">
-        <UButton v-if="index === messages.length - 2 || index === messages.length - 1" icon="i-ph-x" class="absolute right-0 opacity-20 hover:opacity-100" variant="outline" @click="emit('deleteLast')" />
-        <div v-if="isUserMessage(item.message)">
-          <span class="justify-end">
-            <UIcon name="i-ph-user" class="align-text-bottom text-2xl" />
-            {{ item.sender }}
-            <span class="hidden group-hover:inline-block pl-4 text-[0.66rem]">
-              {{ item.message.created_at }}
-            </span>
-          </span>
-          <VueMarkdown :source="item.message.prompt" />
+      <template #footer>
+        <div class="flex">
+          <UTextarea
+            ref="textarea"
+            v-model="messageText.prompt"
+            class="w-full"
+            :disabled="isResponding || isDeleting"
+            autoresize
+            autofocus
+            @keyup.enter="submitMessage"
+          />
+          <UButton class="px-6" icon="i-ph-arrow-right" :disabled="isResponding" @click="submitMessage" />
         </div>
-      </div>
-    </div>
+      </template>
+    </UCard>
   </div>
 </template>
 
 <script setup lang="ts">
 import VueMarkdown from 'vue-markdown-render'
-import type { Message, UserMessage } from '~/types'
+import type {
+  OllamaResponseSingle,
+  UserMessage,
+  Chat
+} from '~/types'
 
-defineProps({
-  messages: {
-    type: Array as PropType<Message[]>,
+const { public: { ollama: { baseURL: ollamaURL } } } = useRuntimeConfig()
+
+const props = defineProps({
+  chat: {
+    type: Object as PropType<Chat>,
     required: true
+  },
+  chatId: {
+    type: String,
+    required: true
+  },
+  pageTitle: {
+    type: String,
+    required: false,
+    default: 'New Chat'
   }
 })
 
-const emit = defineEmits(['deleteLast'])
+const chat = ref<Chat>(props.chat ?? {
+  id: props.chatId,
+  title: props.pageTitle,
+  context: [],
+  messages: []
+})
 
-function isUserMessage (message: any): message is UserMessage {
-  return message && message.prompt !== undefined
+const textarea = ref({ textarea: null as HTMLTextAreaElement | null })
+const messageText = ref<UserMessage['message']>({
+  prompt: ''
+})
+
+const isResponding = ref(false)
+const isDeleting = ref(false)
+const isEdit = ref({
+  open: false,
+  title: chat.value.title ?? ''
+})
+
+async function submitMessage () {
+  if (!messageText.value.prompt) { return }
+  isResponding.value = true
+
+  const prompt = messageText.value.prompt
+  messageText.value.prompt = ''
+
+  chat.value.messages?.push({
+    sender: 'user',
+    message: {
+      prompt,
+      created_at: new Date()
+    }
+  })
+
+  const responseStream = await $fetch<ReadableStream>('/api/generate', {
+    baseURL: ollamaURL,
+    method: 'post',
+    body: {
+      model: 'mistral',
+      context: chat.value.context,
+      prompt,
+      stream: true
+    },
+    responseType: 'stream'
+  })
+
+  const reader = responseStream.getReader()
+
+  const message: OllamaResponseSingle = {
+    sender: 'ai',
+    message: {
+      model: 'mistral',
+      response: '',
+      done: false
+    }
+  }
+
+  chat.value.messages!.push(message)
+
+  const lastMessage = chat.value.messages?.at(-1)
+
+  while (true) {
+    const { value } = await reader.read()
+
+    const responseBody: OllamaResponseSingle['message'] = JSON.parse(new TextDecoder().decode(value))
+
+    if (lastMessage && lastMessage.sender === 'ai' && !responseBody.done) {
+      lastMessage.message.response += responseBody.response
+      lastMessage.message.done = responseBody.done
+    } else if (lastMessage && lastMessage.sender === 'ai' && responseBody.done) {
+      const { response, ...rest } = responseBody
+      lastMessage.message.response += response
+      lastMessage.message = { ...lastMessage.message, ...rest }
+      chat.value.context = responseBody.context
+      break
+    }
+  }
+
+  await useFetch('/api/chats', {
+    method: 'post',
+    body: chat.value
+  })
+
+  isResponding.value = false
+  await nextTick()
+  textarea.value.textarea?.focus()
+}
+
+async function deleteLast () {
+  if (!isResponding.value) {
+    isDeleting.value = true
+    if (chat.value.messages && chat.value.messages.length > 0) {
+      const lastMessage = chat.value.messages.at(-1)
+
+      if (lastMessage && lastMessage.sender === 'user') {
+        chat.value.messages.splice(-1)
+      } else if (lastMessage && lastMessage.sender === 'ai') {
+        chat.value.messages.splice(-2)
+        chat.value.context = lastMessage.message.context
+      } else {
+        throw new Error('Couln\'t delete last message')
+      }
+    }
+
+    await useFetch('/api/chats', {
+      method: 'post',
+      body: chat.value
+    })
+    isDeleting.value = false
+  } else {
+    useToast().add({
+      id: 'delete_last_message',
+      title: 'Cannot delete last message',
+      description: 'You can\'t delete the last message while the AI is responding',
+      icon: 'i-ph-warning',
+      color: 'warning'
+    })
+  }
+}
+
+async function editTitle () {
+  chat.value.title = isEdit.value.title
+
+  await useFetch('/api/chats', {
+    method: 'post',
+    body: chat.value
+  })
+
+  isEdit.value.open = false
 }
 </script>
+
+<style coped>
+
+</style>
