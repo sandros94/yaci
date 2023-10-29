@@ -38,7 +38,7 @@
       </div>
       <template #footer>
         <div class="flex">
-          <UTextarea v-model="messageText.prompt" class="w-full" :disabled="isResponding" @keyup.enter="submitMessage" />
+          <UTextarea v-model="messageText.prompt" class="w-full" :disabled="isResponding" autofocus @keyup.enter="submitMessage" />
           <UButton class="px-6" icon="i-ph-arrow-right" :disabled="isResponding" @click="submitMessage" />
         </div>
       </template>
@@ -47,7 +47,6 @@
 </template>
 
 <script setup lang="ts">
-import { joinURL } from 'ufo'
 import type {
   OllamaResponseSingle,
   UserMessage,
@@ -58,7 +57,7 @@ const { public: { ollama: { baseURL: ollamaURL } } } = useRuntimeConfig()
 
 const { params: { chatid }, query: { title: pageTitle } } = useRoute()
 
-const messageText = ref<UserMessage>({
+const messageText = ref<UserMessage['message']>({
   prompt: ''
 })
 
@@ -96,25 +95,50 @@ async function submitMessage () {
     }
   })
 
-  // TODO: enable streaming mode
-  const responseBody = await $fetch<OllamaResponseSingle>(joinURL(ollamaURL, '/api/generate'), {
+  const responseStream = await $fetch<ReadableStream>('/api/generate', {
+    baseURL: ollamaURL,
     method: 'post',
     body: {
       model: 'mistral',
       context: chat.value.context,
       prompt,
-      stream: false
-    }
+      stream: true
+    },
+    responseType: 'stream'
   })
 
-  chat.value.messages!.push({
+  const reader = responseStream.getReader()
+
+  const message: OllamaResponseSingle = {
     sender: 'ai',
-    message: responseBody
-  })
+    message: {
+      model: 'mistral',
+      response: '',
+      done: false
+    }
+  }
 
-  chat.value.context = responseBody.context
+  chat.value.messages!.push(message)
 
-  // TODO: post to api endpoint to save message to db
+  const lastMessage = chat.value.messages?.at(-1)
+
+  while (true) {
+    const { value } = await reader.read()
+
+    const responseBody: OllamaResponseSingle['message'] = JSON.parse(new TextDecoder().decode(value))
+
+    if (lastMessage && lastMessage.sender === 'ai' && !responseBody.done) {
+      lastMessage.message.response += responseBody.response
+      lastMessage.message.done = responseBody.done
+    } else if (lastMessage && lastMessage.sender === 'ai' && responseBody.done) {
+      const { response, ...rest } = responseBody
+      lastMessage.message.response += response
+      lastMessage.message = { ...lastMessage.message, ...rest }
+      chat.value.context = responseBody.context
+      break
+    }
+  }
+
   await useFetch('/api/chats', {
     method: 'post',
     body: chat.value
@@ -124,15 +148,11 @@ async function submitMessage () {
 }
 
 async function deleteLast () {
-  function isOllamaResponseSingle (message: UserMessage | OllamaResponseSingle): message is OllamaResponseSingle {
-    return (message as OllamaResponseSingle).model !== undefined
-  }
-
   chat.value.messages!.splice(-2)
 
   if (chat.value.messages && chat.value.messages.length > 1) {
     const lastMessage = chat.value.messages?.at(-1)
-    if (lastMessage!.sender === 'ai' && isOllamaResponseSingle(lastMessage!.message)) {
+    if (lastMessage && lastMessage.sender === 'ai') {
       chat.value.context = lastMessage!.message.context
     }
   } else {
