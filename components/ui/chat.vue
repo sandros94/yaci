@@ -1,6 +1,6 @@
 <template>
-  <div class="w-full h-fit overflow-y-auto" style="overflow-anchor: auto;">
-    <UCard class="prose dark:prose-invert mx-auto">
+  <div class="w-full h-full overflow-y-auto" style="overflow-anchor: auto;">
+    <UCard class="prose dark:prose-invert mx-auto min-h-full flex flex-col">
       <template #header>
         <div class="w-full px-4 text-center">
           <span v-if="chat.title" class="inline-flex gap-2">
