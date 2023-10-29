@@ -51,7 +51,8 @@ export default defineNuxtConfig({
         baseURL: 'http://localhost:3000',
         version: 'v0.1.0',
         ollama: {
-          baseURL: 'http://localhost:11434'
+          baseURL: 'http://localhost:11434',
+          defaultModel: 'mistral'
         }
       }
     }

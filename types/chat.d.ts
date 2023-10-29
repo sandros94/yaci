@@ -31,6 +31,7 @@ export interface Chat {
   title: string,
   system_prompt?: string,
   temperature?: number,
+  model: string,
   context?: number[],
   messages?: (UserMessage | OllamaResponseSingle)[],
 }

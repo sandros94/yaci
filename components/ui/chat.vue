@@ -7,7 +7,7 @@
             <h3 class="my-0 truncate">
               {{ chat.title }}
             </h3>
-            <UButton icon="i-ph-pencil" variant="ghost" @click="isEdit.open = true" />
+            <UButton icon="i-ph-pencil" variant="ghost" :disabled="newChat" :color="newChat ? 'black' : 'primary'" @click="isEdit.open = true" />
             <UModal v-model="isEdit.open">
               <UCard class="prose dark:prose-invert">
                 <template #header>
@@ -113,6 +113,7 @@ import type {
 } from '~/types'
 
 const { public: { yaci: { version, ollama: { baseURL: ollamaURL } } } } = useRuntimeConfig()
+const chatList = useChatList()
 
 const props = defineProps({
   chat: {
@@ -128,6 +129,11 @@ const props = defineProps({
     type: String,
     required: false,
     default: 'New Chat'
+  },
+  model: {
+    type: String,
+    required: false,
+    default: () => useRuntimeConfig().public.yaci.ollama.defaultModel
   }
 })
 
@@ -138,12 +144,14 @@ if (props.chat && props.chat.yaci.version !== version) {
   mismatchDetected.value = true
 }
 
+const newChat = ref(props.chat === null)
 const chat = ref<Chat>(props.chat ?? {
   yaci: {
     version
   },
   id: props.chatId,
   title: props.pageTitle,
+  model: props.model,
   context: [],
   messages: []
 })
@@ -179,20 +187,21 @@ async function submitMessage () {
     baseURL: ollamaURL,
     method: 'post',
     body: {
-      model: 'mistral',
+      model: chat.value.model,
       context: chat.value.context,
       prompt,
       stream: true
     },
     responseType: 'stream'
   })
+  // TODO: check for ollama errors
 
   const reader = responseStream.getReader()
 
   const message: OllamaResponseSingle = {
     sender: 'ai',
     message: {
-      model: 'mistral',
+      model: chat.value.model,
       response: '',
       done: false
     }
@@ -225,6 +234,11 @@ async function submitMessage () {
     body: chat.value
   })
   // TODO: check if the chat has been updated
+
+  if (newChat.value) {
+    chatList.value = await $fetch<{ id: string, label: string, to: string }[]>('/api/chats')
+    newChat.value = false
+  }
 
   isResponding.value = false
   await nextTick()
@@ -273,7 +287,6 @@ async function editTitle () {
     body: chat.value
   })
 
-  const chatList = useChatList()
   chatList.value = await $fetch<{ id: string, label: string, to: string }[]>('/api/chats')
 
   isEdit.value.open = false
