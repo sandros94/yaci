@@ -42,7 +42,7 @@
             ref="textarea"
             v-model="messageText.prompt"
             class="w-full"
-            :disabled="isResponding"
+            :disabled="isResponding || isDeleting"
             autoresize
             autofocus
             @keyup.enter="submitMessage"
@@ -84,6 +84,7 @@ const chat = ref<Chat>(chatHistory.value ?? {
   messages: []
 })
 const isResponding = ref(false)
+const isDeleting = ref(false)
 const isEdit = ref({
   open: false,
   title: chat.value.title ?? ''
@@ -160,6 +161,7 @@ async function submitMessage () {
 
 async function deleteLast () {
   if (!isResponding.value) {
+    isDeleting.value = true
     if (chat.value.messages && chat.value.messages.length > 0) {
       const lastMessage = chat.value.messages.at(-1)
 
@@ -177,6 +179,7 @@ async function deleteLast () {
       method: 'post',
       body: chat.value
     })
+    isDeleting.value = false
   } else {
     useToast().add({
       id: 'delete_last_message',
