@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full h-fit overflow-y-auto">
+  <div class="w-full h-fit overflow-y-auto" style="overflow-anchor: auto;">
     <UCard class="prose dark:prose-invert mx-auto">
       <template #header>
         <div class="w-full px-4 text-center">
@@ -88,8 +88,9 @@ const { public: { ollama: { baseURL: ollamaURL } } } = useRuntimeConfig()
 
 const props = defineProps({
   chat: {
-    type: Object as PropType<Chat>,
-    required: true
+    type: Object as PropType<Chat | null>,
+    required: false,
+    default: null
   },
   chatId: {
     type: String,

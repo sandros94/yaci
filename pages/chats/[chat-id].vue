@@ -1,6 +1,6 @@
 <template>
   <div class="w-full h-full overflow-y-auto" style="overflow-anchor: auto;">
-    <UiChat v-if="chatHistory" :chat="chatHistory" :chat-id="(chatid as string)" :page-title="(pageTitle as string)" />
+    <UiChat :chat="chatHistory" :chat-id="(chatid as string)" :page-title="(pageTitle as string)" />
   </div>
 </template>
 
