@@ -24,6 +24,9 @@ export interface UserMessage {
 }
 
 export interface Chat {
+  yaci: {
+    version: string,
+  },
   id: string,
   title: string,
   system_prompt?: string,
