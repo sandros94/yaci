@@ -1,7 +1,12 @@
 <template>
   <div class="prose dark:prose-invert w-full h-full mx-auto flex flex-col">
     <div class="w-full my-auto text-center">
-      <h1>Welcome to YACI</h1>
+      <h1>
+        Welcome to
+        <UTooltip text="Yet Another Chat Interface" :popper="{placement: 'top'}" :close-delay="333">
+          YACI
+        </UTooltip>
+      </h1>
       <p>Pick a Chat from the sidebar or create a new one.</p>
       <UButton class="mt-4" @click="createChat">
         Create Chat

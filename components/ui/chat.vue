@@ -29,7 +29,10 @@
             </UModal>
           </span>
           <h3 v-else class="my-0">
-            Welcome to YACI
+            Welcome to
+            <UTooltip text="Yet Another Chat Interface" :close-delay="333">
+              YACI
+            </UTooltip>
           </h3>
         </div>
       </template>
