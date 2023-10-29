@@ -96,6 +96,7 @@ watch(isModal, (newValue) => {
 async function deleteChat (chatId: string) {
   // do a fetch to delete the chat, then check response
   const { data: res } = await useFetch('/api/chats/deleteSingle', {
+    key: `delete-${chatId}`,
     method: 'POST',
     body: {
       id: chatId

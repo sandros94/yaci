@@ -220,9 +220,11 @@ async function submitMessage () {
   }
 
   await useFetch('/api/chats', {
+    key: `chat-${chat.value.id}`,
     method: 'post',
     body: chat.value
   })
+  // TODO: check if the chat has been updated
 
   isResponding.value = false
   await nextTick()
@@ -246,6 +248,7 @@ async function deleteLast () {
     }
 
     await useFetch('/api/chats', {
+      key: `chat-${chat.value.id}`,
       method: 'post',
       body: chat.value
     })
@@ -265,9 +268,13 @@ async function editTitle () {
   chat.value.title = isEdit.value.title
 
   await useFetch('/api/chats', {
+    key: `chat-${chat.value.id}`,
     method: 'post',
     body: chat.value
   })
+
+  const chatList = useChatList()
+  chatList.value = await $fetch<{ id: string, label: string, to: string }[]>('/api/chats')
 
   isEdit.value.open = false
 }

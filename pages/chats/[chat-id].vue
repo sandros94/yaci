@@ -10,6 +10,7 @@ import type { Chat } from '~/types'
 const { params: { chatid }, query: { title: pageTitle } } = useRoute()
 
 const { data: chatHistory } = await useFetch<Chat>('/api/chats/readSingle', {
+  key: `chat-${chatid}`,
   method: 'POST',
   body: {
     id: chatid
