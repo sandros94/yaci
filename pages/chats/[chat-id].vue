@@ -148,14 +148,15 @@ async function submitMessage () {
 }
 
 async function deleteLast () {
-  chat.value.messages!.splice(-2)
+  if (chat.value.messages && chat.value.messages.length > 0) {
+    const lastMessage = chat.value.messages.at(-1)
 
-  if (chat.value.messages && chat.value.messages.length > 1) {
-    const lastMessage = chat.value.messages?.at(-1)
-    if (lastMessage && lastMessage.sender === 'ai') {
-      chat.value.context = lastMessage!.message.context
-    }
-  } else {
+    if (lastMessage && lastMessage.sender === 'user') {
+      chat.value.messages.splice(-1)
+    } else if (lastMessage && lastMessage.sender === 'ai') {
+      chat.value.messages.splice(-2)
+      chat.value.context = lastMessage.message.context
+    } else {
     chat.value.messages = []
   }
 
