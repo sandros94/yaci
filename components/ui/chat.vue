@@ -1,6 +1,6 @@
 <template>
-  <div class="w-full h-full overflow-y-auto" style="overflow-anchor: auto;">
-    <UCard class="prose dark:prose-invert mx-auto min-h-full flex flex-col">
+  <div class="w-full h-full overflow-y-auto">
+    <UCard id="message-container" class="prose dark:prose-invert mx-auto min-h-full flex flex-col">
       <template #header>
         <div class="w-full px-4 text-center">
           <span v-if="chat.title" class="inline-flex gap-2">
@@ -233,6 +233,18 @@ async function editTitle () {
 
   isEdit.value.open = false
 }
+
+onMounted(() => {
+  const messageContainer = document.getElementById('message-container')
+
+  const autoScroller = new ResizeObserver(() => {
+    messageContainer?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+  })
+
+  if (messageContainer) {
+    autoScroller.observe(messageContainer)
+  }
+})
 </script>
 
 <style coped>

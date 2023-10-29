@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full h-full overflow-y-auto" style="overflow-anchor: auto;">
+  <div class="w-full min-h-screen overflow-y-auto">
     <UiChat :chat="chatHistory" :chat-id="(chatid as string)" :page-title="(pageTitle as string)" />
   </div>
 </template>
