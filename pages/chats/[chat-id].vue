@@ -38,7 +38,15 @@
       </div>
       <template #footer>
         <div class="flex">
-          <UTextarea v-model="messageText.prompt" class="w-full" :disabled="isResponding" autofocus @keyup.enter="submitMessage" />
+          <UTextarea
+            ref="textarea"
+            v-model="messageText.prompt"
+            class="w-full"
+            :disabled="isResponding"
+            autoresize
+            autofocus
+            @keyup.enter="submitMessage"
+          />
           <UButton class="px-6" icon="i-ph-arrow-right" :disabled="isResponding" @click="submitMessage" />
         </div>
       </template>
@@ -57,6 +65,7 @@ const { public: { ollama: { baseURL: ollamaURL } } } = useRuntimeConfig()
 
 const { params: { chatid }, query: { title: pageTitle } } = useRoute()
 
+const textarea = ref({ textarea: null as HTMLTextAreaElement | null })
 const messageText = ref<UserMessage['message']>({
   prompt: ''
 })
@@ -145,6 +154,8 @@ async function submitMessage () {
   })
 
   isResponding.value = false
+  await nextTick()
+  textarea.value.textarea?.focus()
 }
 
 async function deleteLast () {
