@@ -159,23 +159,33 @@ async function submitMessage () {
 }
 
 async function deleteLast () {
-  if (chat.value.messages && chat.value.messages.length > 0) {
-    const lastMessage = chat.value.messages.at(-1)
+  if (!isResponding.value) {
+    if (chat.value.messages && chat.value.messages.length > 0) {
+      const lastMessage = chat.value.messages.at(-1)
 
-    if (lastMessage && lastMessage.sender === 'user') {
-      chat.value.messages.splice(-1)
-    } else if (lastMessage && lastMessage.sender === 'ai') {
-      chat.value.messages.splice(-2)
-      chat.value.context = lastMessage.message.context
-    } else {
-      throw new Error('Couln\'t delete last message')
+      if (lastMessage && lastMessage.sender === 'user') {
+        chat.value.messages.splice(-1)
+      } else if (lastMessage && lastMessage.sender === 'ai') {
+        chat.value.messages.splice(-2)
+        chat.value.context = lastMessage.message.context
+      } else {
+        throw new Error('Couln\'t delete last message')
+      }
     }
-  }
 
-  await useFetch('/api/chats', {
-    method: 'post',
-    body: chat.value
-  })
+    await useFetch('/api/chats', {
+      method: 'post',
+      body: chat.value
+    })
+  } else {
+    useToast().add({
+      id: 'delete_last_message',
+      title: 'Cannot delete last message',
+      description: 'You can\'t delete the last message while the AI is responding',
+      icon: 'i-ph-warning',
+      color: 'warning'
+    })
+  }
 }
 
 async function editTitle () {
