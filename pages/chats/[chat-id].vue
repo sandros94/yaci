@@ -1,5 +1,5 @@
 <template>
-  <div class="prose dark:prose-invert w-full h-full mx-auto overflow-y-auto">
+  <div class="prose dark:prose-invert w-full h-full mx-auto">
     <UCard class="min-h-full h-fit flex flex-col">
       <template #header>
         <div class="w-full px-4 text-center">
