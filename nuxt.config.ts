@@ -45,16 +45,12 @@ export default defineNuxtConfig({
     icons: ['ph']
   },
 
-  runtimeConfig: {
-    public: {
-      yaci: {
-        baseURL: 'http://localhost:3000',
-        version: 'v0.1.0',
-        ollama: {
-          baseURL: 'http://localhost:11434',
-          defaultModel: 'mistral'
-        }
-      }
+  yaci: {
+    baseURL: 'http://localhost:3000',
+    version: 'v0.1.0',
+    ollama: {
+      baseURL: 'http://localhost:11434',
+      defaultModel: 'mistral:latest'
     }
   },
 

@@ -110,8 +110,8 @@
 <script setup lang="ts">
 import VueMarkdown from 'vue-markdown-render'
 import type {
-  OllamaResponseSingle,
-  UserMessage,
+  OllamaResponse,
+  UserPrompt,
   Chat
 } from '~/types'
 
@@ -160,7 +160,7 @@ const chat = ref<Chat>(props.chat ?? {
 })
 
 const textarea = ref({ textarea: null as HTMLTextAreaElement | null })
-const messageText = ref<UserMessage['message']>({
+const messageText = ref<UserPrompt['message']>({
   prompt: ''
 })
 
@@ -201,7 +201,7 @@ async function submitMessage () {
 
   const reader = responseStream.getReader()
 
-  const message: OllamaResponseSingle = {
+  const message: OllamaResponse = {
     sender: 'ai',
     message: {
       model: chat.value.model,
@@ -217,7 +217,7 @@ async function submitMessage () {
   while (true) {
     const { value } = await reader.read()
 
-    const responseBody: OllamaResponseSingle['message'] = JSON.parse(new TextDecoder().decode(value))
+    const responseBody: OllamaResponse['message'] = JSON.parse(new TextDecoder().decode(value))
 
     if (lastMessage && lastMessage.sender === 'ai' && !responseBody.done) {
       lastMessage.message.response += responseBody.response

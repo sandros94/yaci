@@ -1,4 +1,4 @@
-export interface OllamaResponseSingle {
+export interface OllamaResponse {
   sender: 'ai',
   message: {
     created_at?: Date,
@@ -15,11 +15,21 @@ export interface OllamaResponseSingle {
   }
 }
 
-export interface UserMessage {
+export interface UserPrompt {
   sender: 'user',
   message: {
+    model?: string, // optional because I'm handling it elsewhere
     prompt: string,
     created_at?: Date,
+    system?: string,
+    template?: string,
+    context?: number[],
+    stream?: boolean,
+    options?: {
+      temperature?: number,
+      num_ctx?: number,
+      [key: string]: any
+    }
   }
 }
 
@@ -30,6 +40,7 @@ export interface Chat {
   id: string,
   title: string,
   system_prompt?: string,
+  template?: string,
   temperature?: number,
   model: string,
   context?: number[],
