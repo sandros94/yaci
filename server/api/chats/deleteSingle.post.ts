@@ -6,7 +6,7 @@ export default defineEventHandler(async (event) => {
   if (!body.id) {
     throw new Error('Missing chat ID')
   }
-  const storage = useStorage('chat')
+  const storage = useStorage('chats')
 
   await storage.removeItem(body.id)
 

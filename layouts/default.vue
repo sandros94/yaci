@@ -112,6 +112,9 @@ async function deleteChat (chatId: string) {
     if (route.params.chatid === chatId) {
       navigateTo('/')
     }
+  } else {
+    // eslint-disable-next-line no-console
+    console.error('Something went wrong while deleting the chat')
   }
 }
 </script>
