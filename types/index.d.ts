@@ -4,8 +4,8 @@ export interface YaciConfig {
   baseURL: string,
   version: string,
   ollama: {
-    baseURL: string,
-    defaultModel: string,
+    baseURL?: string,
+    defaultModel?: string,
     defaultSystemPrompt?: string,
     defaultTemplate?: string,
     /**
