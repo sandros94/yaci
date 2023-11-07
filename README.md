@@ -1,75 +1,18 @@
-# Nuxt 3 Minimal Starter
+# YACI
 
-Look at the [Nuxt 3 documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+# Ollama
+If you plan to access YACI and Ollama from something other than `localhost` you should configure the [`OLLAMA_ORIGINS` variable](https://github.com/jmorganca/ollama/blob/main/docs/faq.md#how-can-i-allow-additional-web-origins-to-access-ollama), as well as defining Nuxt to use the address via `NUXT_PUBLIC_YACI_OLLAMA_BASE_URL` env variable.
 
-## Setup
-
-Make sure to install the dependencies:
-
+## Start Ollama via Docker with `OLLAMA_ORIGINS`
 ```bash
-# npm
-npm install
-
-# pnpm
-pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
+docker run --env=OLLAMA_HOST=0.0.0.0 --env=OLLAMA_ORIGINS="http://192.168.1.1:*,http://HOSTNAME.local:*" --volume=ollama:/root/.ollama -p 11434:11434 --name=ollama -d ollama/ollama:latest
 ```
 
-## Development Server
+# Contribute
 
-Start the development server on `http://localhost:3000`:
-
-```bash
-# npm
-npm run dev
-
-# pnpm
-pnpm run dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
-```
-
-## Production
-
-Build the application for production:
+Install the dependencies and start developing YACI:
 
 ```bash
-# npm
-npm run build
-
 # pnpm
-pnpm run build
-
-# yarn
-yarn build
-
-# bun
-bun run build
+pnpm install --frozen-lockfile && pnpm run dev
 ```
-
-Locally preview production build:
-
-```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm run preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
