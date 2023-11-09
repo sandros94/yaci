@@ -35,3 +35,4 @@ logs
 
 # Project specific
 storage/chats
+docker-compose.local.yml

@@ -1,0 +1,30 @@
+version: '3.8'
+name: yaci
+
+services:
+  yaci:
+    image: sandros94/yaci:latest
+    stdin_open: true
+    tty: true
+    ports:
+      - 3000:3000
+    volumes:
+      - yaci-chats:/yaci/storage
+    environment:
+      NUXT_PUBLIC_YACI_OLLAMA_BASE_URL: ${NUXT_PUBLIC_YACI_OLLAMA_BASE_URL:-http://localhost:11434}
+
+  ollama:
+    image: ollama/ollama:latest
+    stdin_open: true
+    tty: true
+    ports:
+      - 11434:11434
+    volumes:
+      - ollama:/root/.ollama
+    environment:
+      OLLAMA_HOST: ${OLLAMA_HOST:-0.0.0.0}
+      OLLAMA_ORIGINS: ${OLLAMA_ORIGINS:-"http://localhost:*"}
+
+volumes:
+  yaci-chats:
+  ollama:
