@@ -7,6 +7,19 @@ Recently I started following [this great project called Ollama](https://github.c
 
 I would like to enfacize the fact that this is mainly a personal project, again mainly for learning and testing a few things around [Nuxt](https://nuxt.com) and [Nitro](https://nitro.unjs.io/). At the current state it is suitable only for personal/local use. If you want to put it in a production environment you are the sole resposible for it.
 
+## How to use it
+Copy the docker compose, and then in the same directory do:
+```bash
+docker compose up -d
+```
+Pull the preferred model for Ollama
+```bash
+curl -X POST http://localhost:11434/api/pull -d '{
+  "name": "mistral:latest"
+}'
+```
+Then open up a browser and navigate to YACI (defaults to [localhost:3000](http://localhost:3000)) and start chatting.
+
 ## Features
 Currently what is available is pretty limited, since I'm building YACI only in my free time. But some of them are:
 - [x] Server side chat storage (currently each chat is a json file).
