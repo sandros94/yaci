@@ -39,7 +39,7 @@
               <USelect v-model="chatOptions.model" :loading="pendingModels" :options="modelList" />
             </UFormGroup>
             <span class="w-full inline-flex justify-end gap-6 mt-6 mb-2">
-              <UButton label="Create Chat" type="submit" />
+              <UButton label="Create Chat" type="submit" :disabled="!modelList && !pendingModels" />
             </span>
           </UForm>
         </UCard>
