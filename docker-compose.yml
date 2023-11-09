@@ -10,8 +10,6 @@ services:
       - 3000:3000
     volumes:
       - yaci-chats:/yaci/storage
-    environment:
-      NUXT_PUBLIC_YACI_OLLAMA_BASE_URL: ${NUXT_PUBLIC_YACI_OLLAMA_BASE_URL:-http://localhost:11434}
 
   ollama:
     image: ollama/ollama:latest

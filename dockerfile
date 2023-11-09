@@ -4,6 +4,9 @@ FROM node:20-alpine as builder
 # Enable Corepack
 RUN corepack enable
 
+# Evnironment variables
+ENV NUXT_PUBLIC_YACI_OLLAMA_BASE_URL='http://ollama:11434'
+
 # Cartella della webapp
 RUN mkdir -p /yaci
 WORKDIR /yaci

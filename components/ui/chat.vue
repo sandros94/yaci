@@ -115,7 +115,7 @@ import type {
   Chat
 } from '~/types'
 
-const { public: { yaci: { version, ollama: { baseURL: ollamaURL } } } } = useRuntimeConfig()
+const { public: { yaci: { version } } } = useRuntimeConfig()
 const chatList = useChatList()
 
 const props = defineProps({
@@ -186,8 +186,7 @@ async function submitMessage () {
     }
   })
 
-  const responseStream = await $fetch<ReadableStream>('/api/generate', {
-    baseURL: ollamaURL,
+  const responseStream = await $fetch<ReadableStream>('/ollama/generate', {
     method: 'post',
     body: {
       model: chat.value.model,

@@ -56,10 +56,7 @@ const uuid = useRandomUUID()
 const newChatModal = ref(false)
 const editModelsModal = ref(false)
 
-const { data: availableModels, pending: pendingModels } = useFetch<ModelList>('/api/tags', {
-  baseURL: ollama.baseURL
-})
-
+const { data: availableModels, pending: pendingModels } = useFetch<ModelList>('/ollama/tags')
 const modelList = computed(() => {
   return availableModels.value?.models.map(model => model.name)
 })

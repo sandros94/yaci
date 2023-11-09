@@ -58,6 +58,9 @@ export default defineNuxtConfig({
         driver: 'fs',
         base: 'storage/chats'
       }
+    },
+    routeRules: {
+      '/ollama/**': { proxy: `${process.env.NUXT_PUBLIC_YACI_OLLAMA_BASE_URL}/api/**` }
     }
   },
 
