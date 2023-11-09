@@ -5,8 +5,8 @@ FROM node:20-alpine as builder
 RUN corepack enable
 
 # Cartella della webapp
-RUN mkdir -p /usr/src/app
-WORKDIR /usr/src/app
+RUN mkdir -p /yaci
+WORKDIR /yaci
 
 # Install Dependencies
 COPY package.json pnpm-lock.yaml ./
@@ -23,9 +23,9 @@ USER node
 
 WORKDIR /yaci
 
-COPY --link --from=builder /usr/src/app/.output/  ./.output
-COPY --link --from=builder /usr/src/app/public ./public
-COPY --link --from=builder /usr/src/app/assets ./assets
+COPY --link --from=builder /yaci/.output/  ./.output
+COPY --link --from=builder /yaci/public ./public
+COPY --link --from=builder /yaci/assets ./assets
 
 EXPOSE 3000
 

@@ -9,6 +9,10 @@
 .cache
 dist
 
+# Docker
+docker-compose*.yml
+dockerfile
+
 # Node dependencies
 node_modules
 
