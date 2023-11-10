@@ -22,6 +22,14 @@ services:
     environment:
       OLLAMA_HOST: ${OLLAMA_HOST:-0.0.0.0}
       OLLAMA_ORIGINS: ${OLLAMA_ORIGINS:-"http://localhost:*"}
+    # Uncomment the following lines to enable NVIDIA GPU support
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
 
 volumes:
   yaci-chats:
