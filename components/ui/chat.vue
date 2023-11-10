@@ -62,18 +62,20 @@
         </div>
       </div>
       <template #footer>
-        <UButtonGroup class="w-full">
-          <UTextarea
-            ref="textarea"
-            v-model="messageText.prompt"
-            class="w-full"
-            :disabled="isResponding || isDeleting"
-            autoresize
-            autofocus
-            @keyup.enter="submitMessage"
-          />
-          <UButton class="px-6" icon="i-ph-arrow-right" :disabled="isResponding" @click="submitMessage" />
-        </UButtonGroup>
+        <UForm :state="messageText" @submit="submitMessage">
+          <UButtonGroup class="w-full">
+            <UTextarea
+              ref="textarea"
+              v-model="messageText.prompt"
+              class="w-full"
+              :disabled="isResponding || isDeleting"
+              autoresize
+              autofocus
+              @keydown.enter.prevent="handleEnter"
+            />
+            <UButton class="px-6" icon="i-ph-arrow-right" :disabled="isResponding" type="submit" />
+          </UButtonGroup>
+        </UForm>
       </template>
     </UCard>
   </div>
@@ -123,7 +125,7 @@ const chat = ref<Chat>(props.chat ?? {
 })
 
 const textarea = ref({ textarea: null as HTMLTextAreaElement | null })
-const messageText = ref<UserMessage['message']>({
+const messageText = reactive<UserMessage['message']>({
   prompt: ''
 })
 
@@ -134,12 +136,22 @@ const isEdit = ref({
   title: chat.value.settings.title ?? ''
 })
 
+function handleEnter (event: KeyboardEvent) {
+  const orientation = window.screen.orientation.type
+  // hacked way to submit on enter only on desktop
+  if (event.shiftKey || orientation === 'portrait-primary' || orientation === 'portrait-secondary') {
+    messageText.prompt += '\n'
+  } else {
+    submitMessage()
+  }
+}
+
 async function submitMessage () {
-  if (!messageText.value.prompt) { return }
+  if (!messageText.prompt || messageText.prompt === '\n') { return }
   isResponding.value = true
 
-  const prompt = messageText.value.prompt
-  messageText.value.prompt = ''
+  const prompt = messageText.prompt
+  messageText.prompt = ''
 
   chat.value.messages?.push({
     sender: 'user',
