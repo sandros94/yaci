@@ -22,8 +22,6 @@ RUN pnpm run build
 # Final production container
 FROM node:20-alpine as runtime
 
-USER node
-
 WORKDIR /yaci
 
 COPY --link --from=builder /yaci/.output/  ./.output

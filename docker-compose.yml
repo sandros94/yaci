@@ -9,7 +9,7 @@ services:
     ports:
       - 3000:3000
     volumes:
-      - yaci-chats:/yaci/storage
+      - yaci-chats:/yaci/storage/chats
 
   ollama:
     image: ollama/ollama:latest
