@@ -12,7 +12,7 @@ export default defineNuxtModule<YaciConfig>({
   },
   defaults: {
     baseURL: 'http://localhost:3000',
-    version: '0.1.0',
+    version: '0.2.0',
     ollama: {
       baseURL: 'http://localhost:11434',
       defaultModel: 'mistral:latest',

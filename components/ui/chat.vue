@@ -1,11 +1,11 @@
 <template>
   <div class="w-full h-full overflow-y-auto">
-    <UCard v-if="!mismatchDetected" id="message-container" class="prose dark:prose-invert mx-auto min-h-full flex flex-col">
+    <UCard id="message-container" class="prose dark:prose-invert mx-auto min-h-full flex flex-col">
       <template #header>
         <div class="w-full px-4 text-center">
-          <span v-if="chat.title" class="inline-flex gap-2">
+          <span v-if="chat.settings.title" class="inline-flex gap-2">
             <h3 class="my-0 truncate">
-              {{ chat.title }}
+              {{ chat.settings.title }}
             </h3>
             <UButton icon="i-ph-pencil" variant="ghost" :disabled="newChat" :color="newChat ? 'black' : 'primary'" @click="isEdit.open = true" />
             <UModal v-model="isEdit.open">
@@ -76,34 +76,6 @@
         </div>
       </template>
     </UCard>
-    <UModal v-model="mismatchDetected">
-      <UCard class="prose dark:prose-invert">
-        <template #header>
-          <h3 class="my-0 ml-4">
-            Version Mismatch
-          </h3>
-        </template>
-        <p>
-          You are trying to open up a chat that is not supported by the current version of YACI.
-        </p>
-        <ul>
-          <li>
-            <strong>Chat Version:</strong> {{ chat.yaci.version || 'Corrupted' }}
-          </li>
-          <li>
-            <strong>YACI Version:</strong> {{ version }}
-          </li>
-        </ul>
-        <p>
-          Currently there are no automated ways to update the chat to the current version of YACI.
-        </p>
-        <template #footer>
-          <span class="w-full inline-flex justify-end gap-6 mb-2">
-            <UButton label="Back Home" variant="outline" class="decoration-transparent" :ui="{variant:{solid:'dark:text-gray-100'}}" to="/" />
-          </span>
-        </template>
-      </UCard>
-    </UModal>
   </div>
 </template>
 
@@ -140,21 +112,16 @@ const props = defineProps({
   }
 })
 
-const mismatchDetected = ref(false)
-if (props.chat && props.chat.yaci.version !== version) {
-  // eslint-disable-next-line no-console
-  console.warn('Chat version mismatch, chat version:', props.chat.yaci.version, 'YACI version:', version)
-  mismatchDetected.value = true
-}
-
 const newChat = ref(props.chat === null)
 const chat = ref<Chat>(props.chat ?? {
   yaci: {
     version
   },
   id: props.chatId,
-  title: props.pageTitle,
-  model: props.model,
+  settings: {
+    title: props.pageTitle ?? 'New Chat',
+    model: props.model
+  },
   context: [],
   messages: []
 })
@@ -168,7 +135,7 @@ const isResponding = ref(false)
 const isDeleting = ref(false)
 const isEdit = ref({
   open: false,
-  title: chat.value.title ?? ''
+  title: chat.value.settings.title ?? ''
 })
 
 async function submitMessage () {
@@ -189,7 +156,7 @@ async function submitMessage () {
   const responseStream = await $fetch<ReadableStream>('/ollama/generate', {
     method: 'post',
     body: {
-      model: chat.value.model,
+      model: chat.value.settings.model,
       context: chat.value.context,
       prompt,
       stream: true
@@ -203,7 +170,7 @@ async function submitMessage () {
   const message: OllamaResponse = {
     sender: 'ai',
     message: {
-      model: chat.value.model,
+      model: chat.value.settings.model,
       response: '',
       done: false
     }
@@ -281,7 +248,7 @@ async function deleteLast () {
 }
 
 async function editTitle () {
-  chat.value.title = isEdit.value.title
+  chat.value.settings.title = isEdit.value.title
 
   await useFetch('/api/chats', {
     key: `chat-${chat.value.id}`,

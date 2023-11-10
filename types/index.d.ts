@@ -1,6 +1,5 @@
 export * from './chat'
 export * from './chatVersions'
-import type { ChatV010 } from './chatVersions'
 
 export interface YaciConfig {
   baseURL: string,
@@ -30,5 +29,3 @@ export interface ModelList {
     size: number,
   }[]
 }
-
-export type Chat = ChatV010
