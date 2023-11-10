@@ -224,7 +224,7 @@ async function deleteLast () {
         chat.value.messages.splice(-1)
       } else if (lastMessage && lastMessage.sender === 'ai') {
         chat.value.messages.splice(-2)
-        chat.value.context = lastMessage.message.context
+        chat.value.context = chat.value.messages.length > 0 ? lastMessage.message.context : []
       } else {
         throw new Error('Couln\'t delete last message')
       }
