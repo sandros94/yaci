@@ -1,6 +1,6 @@
 <template>
   <div class="w-full min-h-screen overflow-y-auto">
-    <UiChat v-if="!mismatchDetected" :chat="chatHistory" :chat-id="(chatid as string)" :page-title="(pageTitle as string)" :model="(aiModel as string)" />
+    <UiChat v-if="!mismatchDetected" :chat="chatHistory" :chat-id="(chatId as string)" :chat-options="chatOptions" />
     <UContainer v-else class="flex min-h-full items-center justify-center overflow-y-auto max-w-lg">
       <UCard class="prose dark:prose-invert">
         <template #header>
@@ -36,15 +36,16 @@
 <script setup lang="ts">
 import type { Chat } from '~/types'
 
-const { params: { chatid }, query: { title: pageTitle, model: aiModel } } = useRoute()
+const { params: { chatid: chatId }, query: { chatoptions } } = useRoute()
 const { public: { yaci: { version } } } = useRuntimeConfig()
 const { migrateChat } = useChatMigration()
+const chatOptions: Chat['settings'] | null = chatoptions ? JSON.parse(chatoptions as string) : null
 
 const { data: chatHistory, refresh: refreshChatHistory } = await useFetch<Chat>('/api/chats/readSingle', {
-  key: `chat-${chatid}`,
+  key: `chat-${chatId}`,
   method: 'POST',
   body: {
-    id: chatid
+    id: chatId
   }
 })
 

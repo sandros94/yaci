@@ -1,6 +1,6 @@
 import {
   OllamaResponse,
-  UserMessage,
+  UserMessage
 } from "./index";
 
 export interface ChatV010 {

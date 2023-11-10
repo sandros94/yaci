@@ -62,7 +62,7 @@
         </div>
       </div>
       <template #footer>
-        <div class="flex">
+        <UButtonGroup class="w-full">
           <UTextarea
             ref="textarea"
             v-model="messageText.prompt"
@@ -73,13 +73,14 @@
             @keyup.enter="submitMessage"
           />
           <UButton class="px-6" icon="i-ph-arrow-right" :disabled="isResponding" @click="submitMessage" />
-        </div>
+        </UButtonGroup>
       </template>
     </UCard>
   </div>
 </template>
 
 <script setup lang="ts">
+import { defu } from 'defu'
 import VueMarkdown from 'vue-markdown-render'
 import type {
   OllamaResponse,
@@ -87,7 +88,7 @@ import type {
   Chat
 } from '~/types'
 
-const { public: { yaci: { version } } } = useRuntimeConfig()
+const { public: { yaci: { version, ollama } } } = useRuntimeConfig()
 const chatList = useChatList()
 
 const props = defineProps({
@@ -100,15 +101,10 @@ const props = defineProps({
     type: String,
     required: true
   },
-  pageTitle: {
-    type: String,
+  chatOptions: {
+    type: Object as PropType<Chat['settings'] | null>,
     required: false,
-    default: 'New Chat'
-  },
-  model: {
-    type: String,
-    required: false,
-    default: () => useRuntimeConfig().public.yaci.ollama.defaultModel
+    default: () => {}
   }
 })
 
@@ -118,10 +114,10 @@ const chat = ref<Chat>(props.chat ?? {
     version
   },
   id: props.chatId,
-  settings: {
-    title: props.pageTitle ?? 'New Chat',
-    model: props.model
-  },
+  settings: defu(props.chatOptions, {
+    title: props.chatOptions?.title ?? 'New Chat',
+    model: props.chatOptions?.model ?? ollama.defaultModel
+  }),
   context: [],
   messages: []
 })
@@ -153,17 +149,23 @@ async function submitMessage () {
     }
   })
 
+  // TODO: check for ollama errors
   const responseStream = await $fetch<ReadableStream>('/ollama/generate', {
     method: 'post',
-    body: {
-      model: chat.value.settings.model,
+    body: defu({
+      system: chat.value.settings.system_prompt,
+      template: chat.value.settings.template,
+      options: {
+        temperature: chat.value.settings.temperature
+      }
+    }, {
+      model: ollama.defaultModel,
       context: chat.value.context,
       prompt,
       stream: true
-    },
+    }),
     responseType: 'stream'
   })
-  // TODO: check for ollama errors
 
   const reader = responseStream.getReader()
 
@@ -197,12 +199,12 @@ async function submitMessage () {
     }
   }
 
+  // TODO: check if the chat has been updated
   await useFetch('/api/chats', {
     key: `chat-${chat.value.id}`,
     method: 'post',
     body: chat.value
   })
-  // TODO: check if the chat has been updated
 
   if (newChat.value) {
     chatList.value = await $fetch<{ id: string, label: string, to: string }[]>('/api/chats')
