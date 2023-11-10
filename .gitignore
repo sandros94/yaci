@@ -34,5 +34,5 @@ logs
 .idea
 
 # Project specific
-storage/chats
+/storage/*
 docker-compose.local.yml
