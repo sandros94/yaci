@@ -15,7 +15,7 @@ export interface OllamaResponse {
   }
 }
 
-export interface UserPrompt {
+export interface UserMessage {
   sender: 'user',
   message: {
     model?: string, // optional because I'm handling it elsewhere
@@ -33,16 +33,3 @@ export interface UserPrompt {
   }
 }
 
-export interface Chat {
-  yaci: {
-    version: string,
-  },
-  id: string,
-  title: string,
-  system_prompt?: string,
-  template?: string,
-  temperature?: number,
-  model: string,
-  context?: number[],
-  messages?: (UserMessage | OllamaResponseSingle)[],
-}

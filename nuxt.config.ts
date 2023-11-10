@@ -46,7 +46,6 @@ export default defineNuxtConfig({
   },
 
   yaci: {
-    version: 'v0.1.0',
     ollama: {
       defaultModel: 'mistral:latest'
     }

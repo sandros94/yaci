@@ -49,7 +49,7 @@
 </template>
 
 <script setup lang="ts">
-import type { UserPrompt, ModelList } from '~/types'
+import type { UserMessage, ModelList } from '~/types'
 const { yaci: { ollama } } = useRuntimeConfig().public
 const chatList = useChatList()
 const uuid = useRandomUUID()
@@ -61,7 +61,7 @@ const modelList = computed(() => {
   return availableModels.value?.models.map(model => model.name)
 })
 
-const chatOptions = reactive<{title: string} & Omit<UserPrompt['message'], 'prompt'>>({
+const chatOptions = reactive<{title: string} & Omit<UserMessage['message'], 'prompt'>>({
   title: 'New Chat',
   model: ollama.defaultModel
 })

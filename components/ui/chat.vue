@@ -111,7 +111,7 @@
 import VueMarkdown from 'vue-markdown-render'
 import type {
   OllamaResponse,
-  UserPrompt,
+  UserMessage,
   Chat
 } from '~/types'
 
@@ -160,7 +160,7 @@ const chat = ref<Chat>(props.chat ?? {
 })
 
 const textarea = ref({ textarea: null as HTMLTextAreaElement | null })
-const messageText = ref<UserPrompt['message']>({
+const messageText = ref<UserMessage['message']>({
   prompt: ''
 })
 
