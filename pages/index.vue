@@ -19,8 +19,31 @@
               Manage Models
             </h3>
           </template>
-          <p>
-            Not available in this version of YACI.
+          <div v-if="availableModels && !pendingModels">
+            <h4>
+              Installed Models:
+            </h4>
+            <ul>
+              <li v-for="model in availableModels.models" :key="model.digest" class="my-4 sm:my-3">
+                <span class="inline-flex gap-2">
+                  <p class="my-0">
+                    {{ model.name }}
+                  </p>
+                  <UButton variant="ghost" icon="i-ph-trash" :padded="false" :loading="deletingModel === model.name" @click="deleteModel(model.name)" />
+                </span>
+              </li>
+            </ul>
+            <UForm :validate="validateInstallModel" :state="installModel" class="flex flex-col gap-6 pt-4" @submit="installNewModel">
+              <UFormGroup label="Download new Model" name="modelName" required>
+                <UButtonGroup class="w-full">
+                  <UInput v-model="installModel.name" class="w-full" placeholder="Model name, eg: mistral" :loading="installingModel" />
+                  <UButton square type="submit" icon="i-ph-plus" :disabled="installingModel" />
+                </UButtonGroup>
+              </UFormGroup>
+            </UForm>
+          </div>
+          <p v-else>
+            No Models available.
           </p>
           <template #footer>
             <span class="w-full inline-flex justify-end gap-6">
@@ -91,12 +114,48 @@ const uuid = useRandomUUID()
 const newChatModal = ref(false)
 const editModelsModal = ref(false)
 
-const { data: availableModels, pending: pendingModels } = useFetch<ModelList>('/ollama/tags', {
+const { data: availableModels, pending: pendingModels, refresh: refreshModels } = useFetch<ModelList>('/ollama/tags', {
   key: 'ollama-models'
 })
 const modelList = computed(() => {
   return availableModels.value?.models.map(model => model.name)
 })
+
+const installingModel = ref(false)
+const deletingModel = ref('')
+const installModel = reactive<{ name: string }>({
+  name: ''
+})
+
+const validateInstallModel = (state: { name: string }): FormError[] => {
+  const errors = []
+  if (!state.name) { errors.push({ path: 'modelName', message: 'Required' }) }
+  return errors
+}
+
+async function installNewModel (event: FormSubmitEvent<{ name: string }>) {
+  installingModel.value = true
+  await $fetch('/ollama/pull', {
+    method: 'POST',
+    body: {
+      name: event.data.name
+    }
+  })
+  refreshModels()
+  installModel.name = ''
+  installingModel.value = false
+}
+async function deleteModel (modelName: string) {
+  deletingModel.value = modelName
+  await $fetch('/ollama/delete', {
+    method: 'DELETE',
+    body: {
+      name: modelName
+    }
+  })
+  refreshModels()
+  deletingModel.value = ''
+}
 
 const chatOptions = reactive<Chat['settings']>({
   title: 'New Chat',
