@@ -195,19 +195,28 @@ async function submitMessage () {
   const lastMessage = chat.value.messages?.at(-1)
 
   while (true) {
-    const { value } = await reader.read()
+    const { value, done } = await reader.read()
 
-    const responseBody: OllamaResponse['message'] = JSON.parse(new TextDecoder().decode(value))
-
-    if (lastMessage && lastMessage.sender === 'ai' && !responseBody.done) {
-      lastMessage.message.response += responseBody.response
-      lastMessage.message.done = responseBody.done
-    } else if (lastMessage && lastMessage.sender === 'ai' && responseBody.done) {
-      const { response, ...rest } = responseBody
-      lastMessage.message.response += response
-      lastMessage.message = { ...lastMessage.message, ...rest }
-      chat.value.context = responseBody.context
+    if (done) {
       break
+    }
+
+    const lines = new TextDecoder().decode(value).split('\n')
+    for (const line of lines) {
+      if (line) { // check if line is not an empty string
+        const responseBody: OllamaResponse['message'] = JSON.parse(line)
+
+        if (lastMessage && lastMessage.sender === 'ai' && !responseBody.done) {
+          lastMessage.message.response += responseBody.response
+          lastMessage.message.done = responseBody.done
+        } else if (lastMessage && lastMessage.sender === 'ai' && responseBody.done) {
+          const { response, ...rest } = responseBody
+          lastMessage.message.response += response
+          lastMessage.message = { ...lastMessage.message, ...rest }
+          chat.value.context = responseBody.context
+          break
+        }
+      }
     }
   }
 
