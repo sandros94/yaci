@@ -20,10 +20,10 @@
             </h3>
           </template>
           <div v-if="availableModels && !pendingModels">
-            <h4>
+            <p class="mb-0">
               Installed Models:
-            </h4>
-            <ul>
+            </p>
+            <ul class="mt-0">
               <li v-for="model in availableModels.models" :key="model.digest" class="my-4 sm:my-3">
                 <span class="inline-flex gap-2">
                   <p class="my-0">
@@ -33,18 +33,24 @@
                 </span>
               </li>
             </ul>
-            <UForm :validate="validateInstallModel" :state="installModel" class="flex flex-col gap-6 pt-4" @submit="installNewModel">
-              <UFormGroup label="Download new Model" name="modelName" required>
-                <UButtonGroup class="w-full">
-                  <UInput v-model="installModel.name" class="w-full" placeholder="Model name, eg: mistral" :loading="installingModel" />
-                  <UButton square type="submit" icon="i-ph-plus" :disabled="installingModel" />
-                </UButtonGroup>
-              </UFormGroup>
-            </UForm>
           </div>
           <p v-else>
-            No Models available.
+            Couldn't find installed models.
           </p>
+          <p class="pt-4">
+            You can find available models
+            <ULink to="https://ollama.ai/library" target="_blank">
+              here
+            </ULink>
+          </p>
+          <UForm :validate="validateInstallModel" :state="installModel" class="flex flex-col gap-6" @submit="installNewModel">
+            <UFormGroup label="Download new Model" name="modelName" required>
+              <UButtonGroup class="w-full">
+                <UInput v-model="installModel.name" class="w-full" placeholder="Model name, eg: mistral" :loading="installingModel" />
+                <UButton square type="submit" icon="i-ph-plus" :disabled="installingModel" />
+              </UButtonGroup>
+            </UFormGroup>
+          </UForm>
           <template #footer>
             <span class="w-full inline-flex justify-end gap-6">
               <UButton label="Close" variant="outline" @click="editModelsModal = false" />
