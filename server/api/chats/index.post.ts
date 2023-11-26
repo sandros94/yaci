@@ -10,5 +10,15 @@ export default defineEventHandler(async (event) => {
   } else if (!body.settings.title) {
     throw new Error('Missing chat title')
   }
-  await useStorage('chats').setItem<Chat>(body.id, body)
+
+  try {
+    await useStorage('chats').setItem<Chat>(body.id, body)
+    setResponseStatus(event, 200)
+    return body
+  } catch (error: any) {
+    setResponseStatus(event, error.code ?? 500, error.message)
+    // eslint-disable-next-line no-console
+    console.error(error)
+    return error
+  }
 })

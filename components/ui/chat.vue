@@ -62,7 +62,10 @@
         </div>
       </div>
       <template #footer>
-        <UForm :state="messageText" @submit="submitMessage">
+        <UForm :state="messageText" class="relative" @submit="submitMessage">
+          <div v-if="isError" class="w-fit absolute -top-12 inset-x-0 mx-auto">
+            <UButton label="Chat not Saved" trailing-icon="i-ph-arrow-counter-clockwise" color="warning" @click="saveChat()" />
+          </div>
           <UButtonGroup class="w-full">
             <UTextarea
               ref="textarea"
@@ -92,6 +95,7 @@ import type {
 
 const { public: { yaci: { version, ollama } } } = useRuntimeConfig()
 const chatList = useChatList()
+const toast = useToast()
 
 const props = defineProps({
   chat: {
@@ -129,6 +133,7 @@ const messageText = reactive<UserMessage['message']>({
   prompt: ''
 })
 
+const isError = ref(false)
 const isResponding = ref(false)
 const isDeleting = ref(false)
 const isEdit = ref({
@@ -220,21 +225,52 @@ async function submitMessage () {
     }
   }
 
-  // TODO: check if the chat has been updated
-  await useFetch('/api/chats', {
-    key: `chat-${chat.value.id}`,
-    method: 'post',
-    body: chat.value
-  })
+  await saveChat()
 
   if (newChat.value) {
     chatList.value = await $fetch<{ id: string, label: string, to: string }[]>('/api/chats')
     newChat.value = false
   }
+}
 
-  isResponding.value = false
-  await nextTick()
-  textarea.value.textarea?.focus()
+async function saveChat () {
+  const savedChat = await useFetch('/api/chats', {
+    key: `chat-${chat.value.id}`,
+    method: 'post',
+    body: chat.value
+  })
+
+  const {
+    data: savedChatData,
+    pending: savedChatPending,
+    error: savedChatError
+  } = savedChat
+
+  if (savedChatData.value && !savedChatPending.value && !savedChatError.value) {
+    isError.value = false
+    isResponding.value = false
+    await nextTick()
+    textarea.value.textarea?.focus()
+    toast.remove('save_chat_error')
+  } else if (!savedChatPending.value && savedChatError.value) {
+    isError.value = true
+    toast.add({
+      id: 'save_chat_error',
+      title: 'Couldn\'t save chat',
+      description: `${savedChatError.value.message}`,
+      icon: 'i-ph-warning',
+      color: 'warning',
+      timeout: 0,
+      actions: [{
+        label: 'Retry',
+        color: 'primary',
+        trailingIcon: 'i-ph-arrow-counter-clockwise',
+        click: async () => await saveChat()
+      }]
+    })
+  }
+
+  return savedChat
 }
 
 async function deleteLast () {
@@ -260,7 +296,7 @@ async function deleteLast () {
     })
     isDeleting.value = false
   } else {
-    useToast().add({
+    toast.add({
       id: 'delete_last_message',
       title: 'Cannot delete last message',
       description: 'You can\'t delete the last message while the AI is responding',
