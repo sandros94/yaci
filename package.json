@@ -17,6 +17,7 @@
   "devDependencies": {
     "@iconify-json/ph": "^1.1.6",
     "@nuxt/devtools": "latest",
+    "@nuxt/ui": "^2.11.0",
     "@nuxtjs/eslint-config-typescript": "^12.1.0",
     "@nuxtjs/eslint-module": "^4.1.0",
     "@nuxtjs/google-fonts": "^3.0.2",
@@ -27,7 +28,6 @@
     "vue-router": "^4.2.5"
   },
   "dependencies": {
-    "@nuxt/ui": "^2.9.0",
     "vue-markdown-render": "^2.1.1"
   }
 }
