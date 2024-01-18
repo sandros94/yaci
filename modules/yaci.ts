@@ -26,7 +26,7 @@ export default defineNuxtModule<YaciConfig>({
   },
   setup (options, nuxt) {
     // Public runtimeConfig
-    nuxt.options.runtimeConfig.public.yaci = defu(
+    nuxt.options.runtimeConfig.public.yaci = defu<YaciConfig, YaciConfig[]>(
       nuxt.options.runtimeConfig.public.yaci,
       {
         baseURL: options.baseURL,
@@ -45,3 +45,15 @@ export default defineNuxtModule<YaciConfig>({
     )
   }
 })
+
+declare module '@nuxt/schema' {
+  interface NuxtOptions {
+    yaci?: YaciConfig
+    runtimeConfig: {
+      yaci: YaciConfig
+      public: {
+        yaci: YaciConfig
+      }
+    };
+  }
+}
