@@ -12,7 +12,7 @@ services:
       - yaci-chats:/yaci/storage/chats
 
   ollama:
-    image: ollama/ollama:latest
+    image: ollama/ollama:0.1.14
     stdin_open: true
     tty: true
     ports:
