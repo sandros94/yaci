@@ -28,6 +28,6 @@
     "vue-router": "^4.2.5"
   },
   "dependencies": {
-    "vue-markdown-render": "^2.1.1"
+    "nuxt-markdown-render": "^1.1.1"
   }
 }

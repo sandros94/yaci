@@ -46,7 +46,7 @@
                 {{ item.message.created_at }}
               </span>
             </span>
-            <VueMarkdown :source="item.message.response" />
+            <NuxtMarkdown :source="item.message.response" />
           </div>
           <div v-else class="w-full relative group pt-5">
             <UButton v-if="index === chat.messages.length - 2 || index === chat.messages.length - 1" icon="i-ph-x" class="absolute right-0 opacity-20 hover:opacity-100" variant="outline" @click="deleteLast()" />
@@ -57,7 +57,7 @@
                 {{ item.message.created_at }}
               </span>
             </span>
-            <VueMarkdown :source="item.message.prompt" />
+            <NuxtMarkdown :source="item.message.prompt" />
           </div>
         </div>
       </div>
@@ -86,7 +86,6 @@
 
 <script setup lang="ts">
 import { defu } from 'defu'
-import VueMarkdown from 'vue-markdown-render'
 import type {
   OllamaResponse,
   UserMessage,

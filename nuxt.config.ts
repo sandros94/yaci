@@ -4,7 +4,8 @@ export default defineNuxtConfig({
   modules: [
     '@nuxtjs/eslint-module',
     '@nuxtjs/google-fonts',
-    '@nuxt/ui'
+    '@nuxt/ui',
+    'nuxt-markdown-render'
   ],
 
   devtools: { enabled: true },
