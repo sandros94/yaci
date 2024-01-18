@@ -1,6 +1,6 @@
 <template>
   <div class="w-full min-h-screen overflow-y-auto">
-    <UiChat v-if="!mismatchDetected" :chat="chatHistory" :chat-id="(chatId as string)" :chat-options="chatOptions" />
+    <UiChat v-if="!mismatchDetected" :chat="chat" :chat-id="(chatId as string)" />
     <UContainer v-else class="flex min-h-full items-center justify-center overflow-y-auto max-w-lg">
       <UCard class="prose dark:prose-invert">
         <template #header>
@@ -25,7 +25,7 @@
         <template #footer>
           <span class="w-full inline-flex justify-end gap-6 mb-2">
             <UButton label="Back Home" variant="outline" class="decoration-transparent" to="/" />
-            <UButton label="Update Chat" class="decoration-transparent" @click="updateChat(chatHistory)" />
+            <UButton v-if="chatHistory" label="Update Chat" class="decoration-transparent" @click="updateChat(chatHistory)" />
           </span>
         </template>
       </UCard>
@@ -34,14 +34,17 @@
 </template>
 
 <script setup lang="ts">
-import type { Chat } from '~/types'
+import type { Chat, ChatVersions, DeepPartial } from '~/types'
 
 const { params: { chatid: chatId }, query: { chatoptions } } = useRoute()
-const { public: { yaci: { version } } } = useRuntimeConfig()
+const { public: { yaci: { ollama, version } } } = useRuntimeConfig()
 const { migrateChat } = useChatMigration()
-const chatOptions: Chat['settings'] | null = chatoptions ? JSON.parse(chatoptions as string) : null
+const chat = useChatState()
+const mismatchDetected = ref(true)
+const updateChatError = ref(false)
+const chatOptions: DeepPartial<Chat> = JSON.parse(chatoptions as string)
 
-const { data: chatHistory, refresh: refreshChatHistory } = await useFetch<Chat>('/api/chats/readSingle', {
+const { data: chatHistory, refresh: refreshChatHistory, error: errorChatHistory } = await useFetch<Chat>('/api/chats/readSingle', {
   key: `chat-${chatId}`,
   method: 'POST',
   body: {
@@ -49,7 +52,6 @@ const { data: chatHistory, refresh: refreshChatHistory } = await useFetch<Chat>(
   }
 })
 
-const mismatchDetected = ref(true)
 if (chatHistory.value && chatHistory.value.yaci && chatHistory.value.yaci.version !== version) {
   // eslint-disable-next-line no-console
   console.warn('Chat version mismatch, chat version:', chatHistory.value.yaci.version, 'YACI version:', version)
@@ -58,8 +60,7 @@ if (chatHistory.value && chatHistory.value.yaci && chatHistory.value.yaci.versio
   mismatchDetected.value = false
 }
 
-const updateChatError = ref(false)
-async function updateChat (chat: any) {
+async function updateChat (chat: ChatVersions) {
   const updatedChat = migrateChat(chat)
   if (updatedChat) {
     await $fetch('/api/chats', {
@@ -70,6 +71,38 @@ async function updateChat (chat: any) {
     mismatchDetected.value = false
   } else {
     updateChatError.value = true
+  }
+}
+
+if (!mismatchDetected.value && !updateChatError.value) {
+  if (chat.value.yaci?.id !== chatId) {
+    if (chatoptions) {
+      chat.value = {
+        ...chatOptions,
+        yaci: {
+          id: chatId as string,
+          ...chatOptions.yaci
+        }
+      }
+    } else {
+      chat.value = {
+        yaci: {
+          id: chatId as string,
+          title: 'New Chat',
+          version
+        },
+        model: ollama.defaultModel,
+        options: {
+
+          temperature: ollama.defaultOptions.temperature || undefined
+        },
+        template: ollama.defaultTemplate || undefined,
+        messages: [],
+        stream: true
+      }
+    }
+  } else if (chatHistory.value && !errorChatHistory.value) {
+    chat.value = chatHistory.value
   }
 }
 </script>

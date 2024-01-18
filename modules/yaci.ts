@@ -12,7 +12,7 @@ export default defineNuxtModule<YaciConfig>({
   },
   defaults: {
     baseURL: 'http://localhost:3000',
-    version: '0.2.0',
+    version: '0.3.0',
     ollama: {
       baseURL: 'http://localhost:11434',
       defaultModel: 'mistral:latest',
@@ -32,13 +32,13 @@ export default defineNuxtModule<YaciConfig>({
         baseURL: options.baseURL,
         version: options.version,
         ollama: {
-          baseURL: options.ollama.baseURL,
-          defaultModel: options.ollama.defaultModel,
-          defaultSystemPrompt: options.ollama.defaultSystemPrompt,
-          defaultTemplate: options.ollama.defaultTemplate,
+          baseURL: options.ollama?.baseURL,
+          defaultModel: options.ollama?.defaultModel,
+          defaultSystemPrompt: options.ollama?.defaultSystemPrompt,
+          defaultTemplate: options.ollama?.defaultTemplate,
           defaultOptions: {
-            temperature: options.ollama.defaultOptions?.temperature,
-            num_ctx: options.ollama.defaultOptions?.num_ctx
+            temperature: options.ollama?.defaultOptions?.temperature,
+            num_ctx: options.ollama?.defaultOptions?.num_ctx
           }
         }
       }
@@ -50,7 +50,6 @@ declare module '@nuxt/schema' {
   interface NuxtOptions {
     yaci?: YaciConfig
     runtimeConfig: {
-      yaci: YaciConfig
       public: {
         yaci: YaciConfig
       }

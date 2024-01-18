@@ -3,11 +3,11 @@
     <UCard id="message-container" class="prose dark:prose-invert mx-auto min-h-full flex flex-col">
       <template #header>
         <div class="w-full px-4 text-center">
-          <span v-if="chat.settings.title" class="inline-flex gap-2">
+          <span v-if="chat.yaci && chat.yaci.title" class="inline-flex gap-2">
             <h3 class="my-0 truncate">
-              {{ chat.settings.title }}
+              {{ chat.yaci.title }}
             </h3>
-            <UButton icon="i-ph-pencil" variant="ghost" :disabled="newChat" :color="newChat ? 'black' : 'primary'" @click="isEdit.open = true" />
+            <UButton icon="i-ph-pencil" variant="ghost" color="primary" @click="isEdit.open = true" />
             <UModal v-model="isEdit.open">
               <UCard class="prose dark:prose-invert">
                 <template #header>
@@ -38,38 +38,32 @@
       </template>
       <div v-if="chat.messages">
         <div v-for="(item, index) in chat.messages" :key="JSON.stringify(item)" class="flex">
-          <div v-if="item.sender === 'ai'" class="w-full group pt-5">
+          <div v-if="item.role === 'assistant'" class="w-full group pt-5">
             <span class="justify-start">
               <UIcon name="i-ph-robot" class="align-text-bottom text-2xl" />
-              {{ item.message.model }}
-              <span class="hidden group-hover:inline-block pl-4 text-[0.66rem]">
-                {{ item.message.created_at }}
-              </span>
+              {{ chat.model }}
             </span>
-            <NuxtMarkdown :source="item.message.response" />
+            <NuxtMarkdown :source="item.content" />
           </div>
           <div v-else class="w-full relative group pt-5">
             <UButton v-if="index === chat.messages.length - 2 || index === chat.messages.length - 1" icon="i-ph-x" class="absolute right-0 opacity-20 hover:opacity-100" variant="outline" @click="deleteLast()" />
             <span class="justify-end">
               <UIcon name="i-ph-user" class="align-text-bottom text-2xl" />
-              {{ item.sender }}
-              <span class="hidden group-hover:inline-block pl-4 text-[0.66rem]">
-                {{ item.message.created_at }}
-              </span>
+              {{ item.role }}
             </span>
-            <NuxtMarkdown :source="item.message.prompt" />
+            <NuxtMarkdown :source="item.content" />
           </div>
         </div>
       </div>
       <template #footer>
-        <UForm :state="messageText" class="relative" @submit="submitMessage">
+        <UForm :state="{ promptText }" class="relative" @submit="submitMessage">
           <div v-if="isError" class="w-fit absolute -top-12 inset-x-0 mx-auto">
             <UButton label="Chat not Saved" trailing-icon="i-ph-arrow-counter-clockwise" color="warning" @click="saveChat()" />
           </div>
           <UButtonGroup class="w-full">
             <UTextarea
               ref="textarea"
-              v-model="messageText.prompt"
+              v-model="promptText"
               class="w-full"
               :disabled="isResponding || isDeleting"
               autoresize
@@ -85,143 +79,121 @@
 </template>
 
 <script setup lang="ts">
-import { defu } from 'defu'
 import type {
-  OllamaResponse,
-  UserMessage,
-  Chat
+  Chat,
+  DeepPartial,
+  MessageUser,
+  ResponseAssistant
 } from '~/types'
 
-const { public: { yaci: { version, ollama } } } = useRuntimeConfig()
 const chatList = useChatList()
 const toast = useToast()
 
 const props = defineProps({
   chat: {
-    type: Object as PropType<Chat | null>,
-    required: false,
-    default: null
+    type: Object as PropType<DeepPartial<Chat>>,
+    required: true
   },
   chatId: {
     type: String,
     required: true
-  },
-  chatOptions: {
-    type: Object as PropType<Chat['settings'] | null>,
-    required: false,
-    default: () => {}
   }
 })
 
-const newChat = ref(props.chat === null)
-const chat = ref<Chat>(props.chat ?? {
-  yaci: {
-    version
-  },
-  id: props.chatId,
-  settings: defu(props.chatOptions, {
-    title: props.chatOptions?.title ?? 'New Chat',
-    model: props.chatOptions?.model ?? ollama.defaultModel
-  }),
-  context: [],
-  messages: []
-})
+const chat = ref<DeepPartial<Chat>>(props.chat)
 
 const textarea = ref({ textarea: null as HTMLTextAreaElement | null })
-const messageText = reactive<UserMessage['message']>({
-  prompt: ''
-})
+const promptText = ref<MessageUser['content']>('')
 
+const newChat = ref<boolean>(chatList.value.some((chatItem: any) => { return chatItem.id === chat.value.yaci!.id }))
 const isError = ref(false)
 const isResponding = ref(false)
 const isDeleting = ref(false)
 const isEdit = ref({
   open: false,
-  title: chat.value.settings.title ?? ''
+  title: chat.value.yaci!.title
 })
 
 function handleEnter (event: KeyboardEvent) {
   const orientation = window.screen.orientation.type
   // hacked way to submit on enter only on desktop
   if (event.shiftKey || orientation === 'portrait-primary' || orientation === 'portrait-secondary') {
-    messageText.prompt += '\n'
+    promptText.value += '\n'
   } else {
     submitMessage()
   }
 }
 
 async function submitMessage () {
-  if (!messageText.prompt || messageText.prompt === '\n') { return }
+  if (!promptText.value || promptText.value === '\n') { return }
   isResponding.value = true
 
-  const prompt = messageText.prompt
-  messageText.prompt = ''
+  const prompt = promptText.value
+  promptText.value = ''
 
-  chat.value.messages?.push({
-    sender: 'user',
-    message: {
-      prompt,
-      created_at: new Date()
-    }
+  chat.value.messages!.push({
+    role: 'user',
+    content: prompt
   })
 
-  // TODO: check for ollama errors
-  const responseStream = await $fetch<ReadableStream>('/ollama/generate', {
-    method: 'post',
-    body: defu({
-      system: chat.value.settings.system_prompt,
-      template: chat.value.settings.template,
-      options: {
-        temperature: chat.value.settings.temperature
-      }
-    }, {
-      model: ollama.defaultModel,
-      context: chat.value.context,
-      prompt,
-      stream: true
-    }),
-    responseType: 'stream'
-  })
+  if (chat.value.stream) {
+    // TODO: check for ollama errors
+    const responseStream = await $fetch<ReadableStream>('/ollama/chat', {
+      method: 'post',
+      body: chat.value
+    })
 
-  const reader = responseStream.getReader()
+    const reader = responseStream.getReader()
 
-  const message: OllamaResponse = {
-    sender: 'ai',
-    message: {
-      model: chat.value.settings.model,
-      response: '',
+    const message: Omit<ResponseAssistant, 'created_at'> & { created_at?: Date} = {
+      model: chat.value.model!,
+      message: {
+        role: 'assistant',
+        content: '',
+        images: null
+      },
       done: false
     }
-  }
 
-  chat.value.messages!.push(message)
+    chat.value.messages!.push(message)
 
-  const lastMessage = chat.value.messages?.at(-1)
+    const lastMessage = chat.value.messages?.at(-1)
 
-  while (true) {
-    const { value, done } = await reader.read()
+    while (true) {
+      const { value, done } = await reader.read()
 
-    if (done) {
-      break
-    }
+      if (done) {
+        break
+      }
 
-    const lines = new TextDecoder().decode(value).split('\n')
-    for (const line of lines) {
-      if (line) { // check if line is not an empty string
-        const responseBody: OllamaResponse['message'] = JSON.parse(line)
+      const lines = new TextDecoder().decode(value).split('\n')
+      for (const line of lines) {
+        if (line) { // check if line is not an empty string
+          const responseBody: ResponseAssistant = JSON.parse(line)
 
-        if (lastMessage && lastMessage.sender === 'ai' && !responseBody.done) {
-          lastMessage.message.response += responseBody.response
-          lastMessage.message.done = responseBody.done
-        } else if (lastMessage && lastMessage.sender === 'ai' && responseBody.done) {
-          const { response, ...rest } = responseBody
-          lastMessage.message.response += response
-          lastMessage.message = { ...lastMessage.message, ...rest }
-          chat.value.context = responseBody.context
-          break
+          if (lastMessage && lastMessage.role === 'assistant' && !responseBody.done) {
+            lastMessage.message.content += responseBody.message.content
+          } else if (lastMessage && lastMessage.role === 'assistant' && responseBody.done) {
+            const { message, ...rest } = responseBody
+            lastMessage.message.content += message.content
+            // eslint-disable-next-line no-console
+            console.log(rest)
+            break
+          }
         }
       }
     }
+  } else {
+    // TODO: check for ollama errors
+    // eslint-disable-next-line
+    const { yaci, ...rest } = chat.value
+
+    const response = await $fetch<ResponseAssistant>('/ollama/chat', {
+      method: 'post',
+      body: rest
+    })
+
+    chat.value.messages!.push(response.message)
   }
 
   await saveChat()
@@ -234,7 +206,7 @@ async function submitMessage () {
 
 async function saveChat () {
   const savedChat = await useFetch('/api/chats', {
-    key: `chat-${chat.value.id}`,
+    key: `chat-${chat.value.yaci!.id}`,
     method: 'post',
     body: chat.value
   })
@@ -278,18 +250,19 @@ async function deleteLast () {
     if (chat.value.messages && chat.value.messages.length > 0) {
       const lastMessage = chat.value.messages.at(-1)
 
-      if (lastMessage && lastMessage.sender === 'user') {
+      if (lastMessage && lastMessage.role === 'user') {
         chat.value.messages.splice(-1)
-      } else if (lastMessage && lastMessage.sender === 'ai') {
+      } else if (lastMessage && lastMessage.role === 'assistant') {
         chat.value.messages.splice(-2)
-        chat.value.context = chat.value.messages.length > 0 ? lastMessage.message.context : []
+      } else if (lastMessage && lastMessage.role === 'system') {
+        return
       } else {
         throw new Error('Couln\'t delete last message')
       }
     }
 
     await useFetch('/api/chats', {
-      key: `chat-${chat.value.id}`,
+      key: `chat-${chat.value.yaci!.id}`,
       method: 'post',
       body: chat.value
     })
@@ -298,7 +271,7 @@ async function deleteLast () {
     toast.add({
       id: 'delete_last_message',
       title: 'Cannot delete last message',
-      description: 'You can\'t delete the last message while the AI is responding',
+      description: 'You can\'t delete the last message while the Assistant is responding',
       icon: 'i-ph-warning',
       color: 'warning'
     })
@@ -306,10 +279,10 @@ async function deleteLast () {
 }
 
 async function editTitle () {
-  chat.value.settings.title = isEdit.value.title
+  chat.value.yaci!.title = isEdit.value.title
 
   await useFetch('/api/chats', {
-    key: `chat-${chat.value.id}`,
+    key: `chat-${chat.value.yaci!.id}`,
     method: 'post',
     body: chat.value
   })

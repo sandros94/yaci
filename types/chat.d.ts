@@ -1,35 +1,14 @@
-export interface OllamaResponse {
-  sender: 'ai',
-  message: {
-    created_at?: Date,
-    eval_count?: number,
-    eval_duration?: number,
-    load_duration?: number,
-    prompt_eval_count?: number,
-    prompt_eval_duration?: number,
-    total_duration?: number
-    model: string,
-    done: boolean,
-    context?: number[],
-    response: string,
-  }
-}
+import type {
+  MessageV030System,
+  MessageV030User,
+  ResponseV030Assistant,
+  ChatV030
+} from '~/types/chatVersions'
 
-export interface UserMessage {
-  sender: 'user',
-  message: {
-    model?: string, // optional because I'm handling it elsewhere
-    prompt: string,
-    created_at?: Date,
-    system?: string,
-    template?: string,
-    context?: number[],
-    stream?: boolean,
-    options?: {
-      temperature?: number,
-      num_ctx?: number,
-      [key: string]: any
-    }
-  }
-}
+export type MessageSystem = MessageV030System
+export type MessageUser = MessageV030User
+export type ResponseAssistant = ResponseV030Assistant
 
+export type Message = MessageSystem | MessageUser | MessageAssistant
+
+export type Chat = ChatV030

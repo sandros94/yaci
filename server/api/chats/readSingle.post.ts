@@ -1,7 +1,7 @@
 import type { Chat } from '~/types'
 
 export default defineEventHandler(async (event) => {
-  const body = await readBody<Chat>(event)
+  const body = await readBody(event)
 
   if (!body.id) {
     throw new Error('Missing chat ID')

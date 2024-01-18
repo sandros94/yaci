@@ -2,9 +2,9 @@ export * from './chat'
 export * from './chatVersions'
 
 export interface YaciConfig {
-  baseURL: string,
-  version: string,
-  ollama: {
+  baseURL?: string,
+  version?: '0.3.0',
+  ollama?: {
     baseURL?: string,
     defaultModel?: string,
     defaultSystemPrompt?: string,
@@ -29,3 +29,7 @@ export interface ModelList {
     size: number,
   }[]
 }
+
+export type DeepPartial<T> = T extends object ? {
+  [P in keyof T]?: DeepPartial<T[P]>
+} : T

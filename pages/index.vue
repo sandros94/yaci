@@ -67,7 +67,7 @@
           </template>
           <UForm :validate="validateChatOptions" :state="chatOptions" class="flex flex-col gap-6" @submit="createChat">
             <UFormGroup label="Chat Title" name="title" required>
-              <UInput v-model="chatOptions.title" />
+              <UInput v-model="chatOptions.yaci!.title" />
             </UFormGroup>
             <UFormGroup label="Model" name="model" required>
               <USelect v-model="chatOptions.model" :loading="pendingModels" :options="modelList" />
@@ -77,20 +77,20 @@
               <UFormGroup label="Temperature" name="temperature">
                 <UButtonGroup class="w-full">
                   <UInput
-                    v-model="chatOptions.temperature"
+                    v-model="chatOptions.options!.temperature"
                     class="w-full"
                     type="number"
                     min="0"
                     max="1"
                     step="0.01"
                   />
-                  <UButton square icon="i-ph-arrow-counter-clockwise" @click="delete chatOptions.temperature" />
+                  <UButton square icon="i-ph-arrow-counter-clockwise" @click="delete chatOptions.options?.temperature" />
                 </UButtonGroup>
               </UFormGroup>
               <UFormGroup label="System Prompt" name="system_prompt">
                 <UButtonGroup class="w-full">
-                  <UTextarea v-model="chatOptions.system_prompt" class="w-full" autoresize />
-                  <UButton square icon="i-ph-arrow-counter-clockwise" @click="delete chatOptions.system_prompt" />
+                  <UTextarea v-model="systemPrompt.content" class="w-full" autoresize />
+                  <UButton square icon="i-ph-arrow-counter-clockwise" @click="delete systemPrompt.content" />
                 </UButtonGroup>
               </UFormGroup>
               <UFormGroup label="Template" name="template">
@@ -113,9 +113,10 @@
 
 <script setup lang="ts">
 import type { FormError, FormSubmitEvent } from '#ui/types'
-import type { Chat, ModelList } from '~/types'
-const { yaci: { ollama } } = useRuntimeConfig().public
+import type { DeepPartial, Chat, ModelList } from '~/types'
+const { ollama } = useRuntimeConfig().public.yaci
 const chatList = useChatList()
+const chat = useChatState()
 const uuid = useRandomUUID()
 const newChatModal = ref(false)
 const editModelsModal = ref(false)
@@ -163,37 +164,43 @@ async function deleteModel (modelName: string) {
   deletingModel.value = ''
 }
 
-const chatOptions = reactive<Chat['settings']>({
-  title: 'New Chat',
-  model: ollama.defaultModel,
-  temperature: ollama.defaultOptions.temperature || undefined,
-  system_prompt: ollama.defaultSystemPrompt || undefined,
-  template: ollama.defaultTemplate || undefined
+const systemPrompt = reactive({
+  role: 'system',
+  content: ollama.defaultSystemPrompt
 })
 
-const validateChatOptions = (state: Chat['settings']): FormError[] => {
+const chatOptions = reactive<DeepPartial<Chat>>(chat.value)
+
+const validateChatOptions = (state: Chat): FormError[] => {
   const errors = []
-  if (!state.title) { errors.push({ path: 'title', message: 'Required' }) }
+  if (!state.yaci.title) { errors.push({ path: 'title', message: 'Required' }) }
   if (!state.model) { errors.push({ path: 'model', message: 'Required' }) }
   return errors
 }
 
-async function createChat (event: FormSubmitEvent<Chat['settings']>) {
+async function createChat (event: FormSubmitEvent<Chat>) {
   const newChat = {
-    id: uuid,
-    ...event.data
+    ...event.data,
+    yaci: {
+      ...event.data.yaci,
+      id: uuid
+    }
   }
   // check if newChat's `id` already exists as chatList's `to` property. If it does regenerate the uuid and try again, else push the newChat to chatList
-  if (chatList.value.find((chat) => { return chat.to === newChat.id })) {
+  if (chatList.value.find((chat: any) => { return chat.to === newChat.yaci.id })) {
     createChat(event)
   } else {
+    if (systemPrompt.content) {
+      newChat.messages!.push(systemPrompt)
+    }
+
     chatList.value.push({
-      to: `/chats/${newChat.id}`,
-      label: newChat.title,
-      id: newChat.id
+      to: `/chats/${newChat.yaci.id}`,
+      label: newChat.yaci.title,
+      id: newChat.yaci.id
     })
     await navigateTo({
-      path: `/chats/${newChat.id}`,
+      path: `/chats/${newChat.yaci.id}`,
       query: {
         chatoptions: JSON.stringify(event.data)
       }
